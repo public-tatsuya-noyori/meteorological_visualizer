@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>monitor</title>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.71/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.71/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<style>.v {height:400px;width:400px}</style>
+<script src="js/meteorological_visualizer.js" type="module"></script>
+</head>
+<body>
+<table cellpadding="1" border="1" style="border-collapse:collapse;border-color:white">
+<tr><td><div class="v" id="v11"></div></td><td><div class="v" id="v12"></div></td><td><div class="v" id="v13"></div></td></tr>
+<tr><td><div class="v" id="v21"></div></td><td><div class="v" id="v22"></div></td><td><div class="v" id="v23"></div></td></tr>
+</table>
+<div style="visibility:hidden" id="c"></div>
+<script>
+minZoom=1;maxZoom=1;cLon=140;cLat=35;cHeight=6500000;
+minZoomDis=1000000;maxZoomDis=cHeight;vResolutionScale=1;cPercentageChanged=0.001;sMode=Cesium.SceneMode.SCENE3D
+globe=new Cesium.Globe();globe.backFaceCulling=false;globe.baseColor='BLACK';globe.dynamicAtmosphereLighting=false;globe.dynamicAtmosphereLightingFromSun=false;globe.showGroundAtmosphere=false;globe.showSkirts=false;globe.showWaterEffect=false;globe.terrainProvider=false
+v11=new Cesium.Viewer('v11',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+v12=new Cesium.Viewer('v12',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+v13=new Cesium.Viewer('v13',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+v21=new Cesium.Viewer('v21',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+v22=new Cesium.Viewer('v22',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+v23=new Cesium.Viewer('v23',{animation:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,skyBox:false,skyAtmosphere:false,useBrowserRecommendedResolution:false,sceneMode:sMode,globe:false,creditContainer:'c',requestRenderMode:true})
+</script>
+</body>
+</html>
