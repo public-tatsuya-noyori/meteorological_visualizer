@@ -345,17 +345,44 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   request
 ) {
   fetch(this._arrowDir + '/' + this._locationDatetimeDir
-   + '/' + level + '/' + x + '/' + y + '/2020073100.arrow').then((response) => {
+   + '/' + level + '/' + x + '/' + y + '/2020073100.arrow')
+   .then((response) => {
     if (!response.ok) {
-        throw new Error("Error: status " + status);
+        throw new DeveloperError("response is not ok")
     } else {
-      const table = new Arrow.Table.from(response.arrayBuffer());
-      var column = table.getColumn('latitude [degree]');
-      console.log(column);
+      Arrow.Table.from(response.arrayBuffer())
+      .then((x) => {
+        console.log(x.getColumn('latitude [degree]').toArray())
+      }
+
+      )
+      
+      //var column = table.getColumn('latitude [degree]');
+      //console.log(column);
     }
   });
   return document.createElement("canvas");
 };
+
+
+/* async,awaitを使用した書き方、個人的にはこちらの方が好き------
+
+ArrowPointCloudImageryProvider.prototype.requestImage = async function (
+  x,
+  y,
+  level,
+  request
+) {
+    var url_arrow = this._arrowDir + '/' + this._locationDatetimeDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow'
+
+    const table1 = await Arrow.Table.from(fetch(url_arrow))
+    console.log(table1)
+    //var column = table.getColumn('latitude [degree]');
+    var row = table1.getColumn('latitude [degree]').toArray();
+    console.log(row)
+  };
+
+*/--------------
 
 /**
  * Picking features is not currently supported by this imagery provider, so this function simply returns
