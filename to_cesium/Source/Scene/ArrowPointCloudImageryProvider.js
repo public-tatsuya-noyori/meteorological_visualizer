@@ -345,12 +345,20 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   request
 ) {
   var locTimeArrowUrl = this._arrowDir + '/' + this._locationDatetimeDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow';
-  fetch(locTimeArrowUrl).then((response) => {
-    if (response.ok) {
-      Arrow.Table.from(fetch(locTimeArrowUrl)).then((locTimeTable) => {
-        console.log(locTimeTable.getColumn('latitude [degree]').toArray());
-       })
-     }
+  fetch(locTimeArrowUrl).then((lResponse) => {
+    if (lResponse.ok) {
+      Arrow.Table.from(lResponse).then((locTimeTable) => {
+        var PropertyArrowUrl = this._arrowDir + '/' + this._propertyDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow';
+        fetch(PropertyArrowUrl).then((pResponse) => {
+          if (pResponse.ok) {
+            Arrow.Table.from(pResponse).then((propertyTable) => {
+              console.log(locTimeTable.getColumn('latitude [degree]').toArray());
+              console.log(propertyTable.getColumn(this._property).toArray());
+            })
+          }
+        })
+      })
+    }
   })
   return document.createElement("canvas");
 };
