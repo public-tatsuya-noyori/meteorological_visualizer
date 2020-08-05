@@ -344,16 +344,14 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   level,
   request
 ) {
-  fetch(this._arrowDir + '/' + this._locationDatetimeDir
-   + '/' + level + '/' + x + '/' + y + '/2020073100.arrow').then((response) => {
-    if (!response.ok) {
-        throw new Error("Error: status " + status);
-    } else {
-      const table = new Arrow.Table.from(response.arrayBuffer());
-      var column = table.getColumn('latitude [degree]');
-      console.log(column);
-    }
-  });
+  var locTimeArrowUrl = this._arrowDir + '/' + this._locationDatetimeDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow';
+  fetch(locTimeArrowUrl).then((response) => {
+    if (response.ok) {
+      Arrow.Table.from(fetch(locTimeArrowUrl)).then((locTimeTable) => {
+        console.log(locTimeTable.getColumn('latitude [degree]').toArray());
+       })
+     }
+  })
   return document.createElement("canvas");
 };
 
