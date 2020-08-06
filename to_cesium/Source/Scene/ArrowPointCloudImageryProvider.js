@@ -10,11 +10,7 @@ import when from "../../../cesium/Source/ThirdParty/when.js";
  *
  * Initialization options for the ArrowPointCloudImageryProvider constructor
  *
- * @property {TilingScheme} [tilingScheme=new GeographicTilingScheme()] The tiling scheme for which to draw tiles.
- * @property {Ellipsoid} [ellipsoid] The ellipsoid.  If the tilingScheme is specified,
- *                    this parameter is ignored and the tiling scheme's ellipsoid is used instead. If neither
- *                    parameter is specified, the WGS84 ellipsoid is used.
- * @property {Color} [color=Color.YELLOW] The color to draw the tile box and label.
+ * @property {TilingScheme} [tilingScheme=new Cesium.GeographicTilingScheme()] The tiling scheme for which to draw tiles.
  * @property {Number} [tileWidth=256] The width of the tile for level-of-detail selection purposes.
  * @property {Number} [tileHeight=256] The height of the tile for level-of-detail selection purposes.
  */
@@ -33,7 +29,6 @@ function ArrowPointCloudImageryProvider(options) {
   options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
   this._tilingScheme = new Cesium.GeographicTilingScheme();
-  this._color = defaultValue(options.color, Color.YELLOW);
   this._errorEvent = new Event();
   this._tileWidth = defaultValue(options.tileWidth, 256);
   this._tileHeight = defaultValue(options.tileHeight, 256);
@@ -42,7 +37,7 @@ function ArrowPointCloudImageryProvider(options) {
   this._minimumLevel = defaultValue(options.maximumLevel, undefined);
   this._arrowDir = defaultValue(options.arrowDir, undefined);
   this._locationDatetimeDir = defaultValue(options.locationDatetimeDir, undefined);
-  this._innerJoin = defaultValue(options.innerJoin, undefined);
+  this._uniqueKeyArray = defaultValue(options.uniqueKeyArray, undefined);
   this._propertyDir = defaultValue(options.propertyDir, undefined);
   this._property = defaultValue(options.property, undefined);
 
@@ -344,16 +339,39 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   level,
   request
 ) {
-  var locTimeArrowUrl = this._arrowDir + '/' + this._locationDatetimeDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow';
-  fetch(locTimeArrowUrl).then((lResponse) => {
-    if (lResponse.ok) {
-      Arrow.Table.from(lResponse).then((locTimeTable) => {
-        var PropertyArrowUrl = this._arrowDir + '/' + this._propertyDir + '/' + level + '/' + x + '/' + y + '/2020073100.arrow';
-        fetch(PropertyArrowUrl).then((pResponse) => {
-          if (pResponse.ok) {
-            Arrow.Table.from(pResponse).then((propertyTable) => {
-              console.log(locTimeTable.getColumn('latitude [degree]').toArray());
-              console.log(propertyTable.getColumn(this._property).toArray());
+  fetch([this._arrowDir, '/', this._propertyDir, '/', level, '/', x, '/', y, '/2020073100.arrow'].join('')).then((pResponse) => {
+    if (pResponse.ok) {
+      Arrow.Table.from(pResponse).then((propertyTable) => {
+        fetch([this._arrowDir, '/', this._locationDatetimeDir, '/', level, '/', x, '/', y, '/2020073100.arrow'].join('')).then((lResponse) => {
+          if (lResponse.ok) {
+            Arrow.Table.from(lResponse).then((locTimeTable) => {
+              let propertyUniqueKeyIndexArray = []
+              for (let i in this._uniqueKeyArray) {
+                propertyUniqueKeyIndexArray.push(propertyTable.getColumnIndex(this._uniqueKeyArray[i]));
+              }
+              let propertyValueIndex = propertyTable.getColumnIndex(this._property);
+              let uniqueKeyValueMap = new Map();
+              for (let row of propertyTable) {
+                let propertyUniqueKeyArray = []
+                for (let i in propertyUniqueKeyIndexArray){
+                  propertyUniqueKeyArray.push(row[i]);
+                }
+                uniqueKeyValueMap.set(propertyUniqueKeyArray.toString(), row[propertyValueIndex]);
+              }
+              let locTimeUniqueKeyIndexArray = []
+              for (let i in this._uniqueKeyArray) {
+                locTimeUniqueKeyIndexArray.push(locTimeTable.getColumnIndex(this._uniqueKeyArray[i]));
+              }
+              for (let row of locTimeTable) {
+                let locTimeUniqueKeyArray = []
+                for (let i in locTimeUniqueKeyIndexArray) {
+                  locTimeUniqueKeyArray.push(row[i]);
+                }
+                if (uniqueKeyValueMap.has(locTimeUniqueKeyArray.toString())) {
+                  console.log(row.toString())
+                  console.log(uniqueKeyValueMap.get(locTimeUniqueKeyArray.toString()))
+                }
+              }
             })
           }
         })
