@@ -40,6 +40,9 @@ function ArrowPointCloudImageryProvider(options) {
   this._uniqueKeyArray = defaultValue(options.uniqueKeyArray, undefined);
   this._propertyDir = defaultValue(options.propertyDir, undefined);
   this._property = defaultValue(options.property, undefined);
+  this._year = defaultValue(options.year, undefined);
+  this._monthDay = defaultValue(options.monthDay, undefined);
+  this._hour = defaultValue(options.hour, undefined);
 
   /**
    * The default alpha blending value of this provider, with 0.0 representing fully transparent and
@@ -339,10 +342,10 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   level,
   request
 ) {
-  fetch([this._arrowDir, '/', this._propertyDir, '/', level, '/', x, '/', y, '/2020073100.arrow'].join('')).then((pResponse) => {
+  fetch([this._arrowDir, '/', this._propertyDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join('')).then((pResponse) => {
     if (pResponse.ok) {
       Arrow.Table.from(pResponse).then((propertyTable) => {
-        fetch([this._arrowDir, '/', this._locationDatetimeDir, '/', level, '/', x, '/', y, '/2020073100.arrow'].join('')).then((lResponse) => {
+        fetch([this._arrowDir, '/', this._locationDatetimeDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join('')).then((lResponse) => {
           if (lResponse.ok) {
             Arrow.Table.from(lResponse).then((locTimeTable) => {
               let propertyUniqueKeyIndexArray = []
