@@ -4,6 +4,7 @@ import defined from "../../../cesium/Source/Core/defined.js";
 import Event from "../../../cesium/Source/Core/Event.js";
 import GeographicTilingScheme from "../../../cesium/Source/Core/GeographicTilingScheme.js";
 import when from "../../../cesium/Source/ThirdParty/when.js";
+//import { promise } from "when";
 
 /**
  * @typedef {Object} ArrowPointCloudImageryProvider.ConstructorOptions
@@ -43,6 +44,7 @@ function ArrowPointCloudImageryProvider(options) {
   this._year = defaultValue(options.year, undefined);
   this._monthDay = defaultValue(options.monthDay, undefined);
   this._hour = defaultValue(options.hour, undefined);
+  this._viewer = defaultValue(options.viewer, undefined);
 
   /**
    * The default alpha blending value of this provider, with 0.0 representing fully transparent and
@@ -342,45 +344,78 @@ ArrowPointCloudImageryProvider.prototype.requestImage = function (
   level,
   request
 ) {
-  fetch([this._arrowDir, '/', this._propertyDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join('')).then((pResponse) => {
-    if (pResponse.ok) {
-      Arrow.Table.from(pResponse).then((propertyTable) => {
-        fetch([this._arrowDir, '/', this._locationDatetimeDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join('')).then((lResponse) => {
-          if (lResponse.ok) {
-            Arrow.Table.from(lResponse).then((locTimeTable) => {
-              let propertyUniqueKeyIndexArray = []
-              for (let i in this._uniqueKeyArray) {
-                propertyUniqueKeyIndexArray.push(propertyTable.getColumnIndex(this._uniqueKeyArray[i]));
-              }
-              let propertyValueIndex = propertyTable.getColumnIndex(this._property);
-              let uniqueKeyValueMap = new Map();
-              for (let row of propertyTable) {
-                let propertyUniqueKeyArray = []
-                for (let i in propertyUniqueKeyIndexArray){
-                  propertyUniqueKeyArray.push(row[i]);
-                }
-                uniqueKeyValueMap.set(propertyUniqueKeyArray.toString(), row[propertyValueIndex]);
-              }
-              let locTimeUniqueKeyIndexArray = []
-              for (let i in this._uniqueKeyArray) {
-                locTimeUniqueKeyIndexArray.push(locTimeTable.getColumnIndex(this._uniqueKeyArray[i]));
-              }
-              for (let row of locTimeTable) {
-                let locTimeUniqueKeyArray = []
-                for (let i in locTimeUniqueKeyIndexArray) {
-                  locTimeUniqueKeyArray.push(row[i]);
-                }
-                if (uniqueKeyValueMap.has(locTimeUniqueKeyArray.toString())) {
-                  console.log(row.toString())
-                  console.log(uniqueKeyValueMap.get(locTimeUniqueKeyArray.toString()))
-                }
-              }
-            })
-          }
-        })
-      })
+
+  this._viewer.entities.add({
+    position: Cesium.Cartesian3.fromDegrees(-111.0, 40.0, 150000.0),
+    name: "Green circle at height with outline",
+    ellipse: {
+      semiMinorAxis: 300000.0,
+      semiMajorAxis: 300000.0,
+      height: 200000.0,
+      material: Cesium.Color.GREEN,
+      outline: true, // height must be set for outline to display
     }
   })
+
+
+  var property_response = fetch([this._arrowDir, '/', this._propertyDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join(''))
+    .then((pResponse) => {
+      if (!pResponse.ok) {
+        throw new Error()
+      }
+      return pResponse
+    }).then((pResponse) => {
+      return Arrow.Table.from(pResponse)
+    })
+    .catch((e)=>console.log("property(L:%d,X:%d,Y:%d) does not exist",level,x,y))
+
+  var loc_response = fetch([this._arrowDir, '/', this._locationDatetimeDir, '/', this._year, '/', this._monthDay, '/', this._hour, '/', level, '/', x, '/', y, '.arrow'].join(''))
+    .then((lResponse) => {
+      if (!lResponse.ok) {
+        throw new Error()
+      }
+      return lResponse
+    })
+    .then((lResponse) => {
+      return Arrow.Table.from(lResponse)
+    })
+    .catch((e)=>console.log("locTime(L:%d,X:%d,Y:%d) does not exist",level,x,y))
+
+  
+  Promise.all([property_response, loc_response])
+    .then(([propertyTable, locTimeTable]) => {
+      let propertyUniqueKeyIndexArray = []
+      for (let i in this._uniqueKeyArray) {
+        propertyUniqueKeyIndexArray.push(propertyTable.getColumnIndex(this._uniqueKeyArray[i]));
+      }
+      let propertyValueIndex = propertyTable.getColumnIndex(this._property);
+      let uniqueKeyValueMap = new Map();
+      for (let row of propertyTable) {
+        let propertyUniqueKeyArray = []
+        for (let i in propertyUniqueKeyIndexArray) {
+          propertyUniqueKeyArray.push(row[i]);
+        }
+        uniqueKeyValueMap.set(propertyUniqueKeyArray.toString(), row[propertyValueIndex]);
+      }
+      let locTimeUniqueKeyIndexArray = []
+      for (let i in this._uniqueKeyArray) {
+        locTimeUniqueKeyIndexArray.push(locTimeTable.getColumnIndex(this._uniqueKeyArray[i]));
+      }
+      for (let row of locTimeTable) {
+        let locTimeUniqueKeyArray = []
+        for (let i in locTimeUniqueKeyIndexArray) {
+          locTimeUniqueKeyArray.push(row[i]);
+        }
+        if (uniqueKeyValueMap.has(locTimeUniqueKeyArray.toString())) {
+          console.log(row.toString())
+          console.log(uniqueKeyValueMap.get(locTimeUniqueKeyArray.toString()))
+        }
+      }
+
+    })
+    .catch((e)=>console.log("prop_or_loc(L:%d,X:%d,Y:%d) does not exist",level,x,y))
+  
+  //呼び出し元の関数のエラーを回避するために空のcanvasをreturn
   return document.createElement("canvas");
 };
 
