@@ -30,7 +30,7 @@ function ArrowImageryProvider(options) {
   this._minimumLevel = Cesium.defaultValue(options.maximumLevel, undefined);
   this._year = Cesium.defaultValue(options.year, undefined);
   this._monthDay = Cesium.defaultValue(options.monthDay, undefined);
-  this._hour = Cesium.defaultValue(options.hour, undefined);
+  this._hourMinute = Cesium.defaultValue(options.hourMinute, undefined);
   this._locationDatetimeDirectory = "location_datetime";
   this._pathArray = Cesium.defaultValue(options.pathArray, undefined);
   this._uniqueKeysArray = Cesium.defaultValue(options.uniqueKeysArray, undefined);
@@ -342,10 +342,10 @@ ArrowImageryProvider.prototype.requestImage = function (
 ) {
   for (let i = 0; i < this._pathArray.length; i++) {
     let propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    fetch([this._pathArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hour, "/", level, "/", x, "/", y, ".arrow"].join("")).then((pResponse) => {
+    fetch([this._pathArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((pResponse) => {
       if (pResponse.ok) {
         Arrow.Table.from(pResponse).then((propertyTable) => {
-          fetch([this._pathArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hour, "/", level, "/", x, "/", y, ".arrow"].join("")).then((lResponse) => {
+          fetch([this._pathArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((lResponse) => {
             if (lResponse.ok) {
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {

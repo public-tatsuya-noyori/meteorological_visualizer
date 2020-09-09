@@ -6,45 +6,24 @@
 <script src="https://sdk.amazonaws.com/js/aws-sdk-2.747.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apache-arrow@0.17.0/Arrow.es5.min.js"></script>
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Cesium.js"></script>
+<script type="module" src="./js/meteorological_visualizer.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-<style>.v {height:400px;width:400px}</style>
+<style>.v {height:360px;width:360px}</style>
 </head>
 <body>
-<table cellpadding="1" border="1" style="border-collapse:collapse;border-color:white">
-<tr><td><div class="v" id="viewer11"></div></td><td><div class="v" id="viewer12"></div></td><td><div class="v" id="viewer13"></div></td></tr>
-<tr><td><div class="v" id="viewer21"></div></td><td><div class="v" id="viewer22"></div></td><td><div class="v" id="viewer23"></div></td></tr>
-</table>
-<div style="visibility:hidden" id="controleViewer"></div>
-<div style="visibility:hidden" id="c"></div>
-<script type="module">
-import ArrowImageryProvider from "./js/ArrowImageryProvider.js";
-function getChildDirectoryList(s3, bucket, prefix) {
-  let childDirectoryArray = []
-  let requestParams = {Bucket: bucket, Prefix: prefix, Delimiter: "/"};
-  s3.makeUnauthenticatedRequest('listObjectsV2', requestParams, function(err, directoryList) {
-    if (err) {
-      console.log("Error", err);
-    } else {
-      directoryList.CommonPrefixes.forEach(commonPrefix => {
-        childDirectoryArray.push(commonPrefix.Prefix.replace(prefix, "").replace("/", ""));
-      });
-    }
-  });
-  return childDirectoryArray;
-}
+<script>
 var region = "ap-northeast-1";
 var endpoint = "s3.wasabisys.com";
 var bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
-var pathArray = ["bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level"];
 AWS.config.region = region;
-var s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint)});
-var yearArray = getChildDirectoryList(s3, bucket, pathArray[0] + "/");
-console.log(yearArray);
-var monthDayArray = getChildDirectoryList(s3, bucket, pathArray[0] + "/" + yearArray[0] + "/");
-console.log(monthDayArray)
-//var hourMinuteArray = getChildDirectoryList(s3, bucket, pathArray[0] + "/" + yearArray[0] + "/" + monthDayArray[0] + "/");
-//console.log(hourMinuteArray)
-
+var s3 = new AWS.S3({apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint)});
+var defaultPrefix = "bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level/";
+var yearArray = [];
+var monthDayArray = [];
+var hourMinuteArray = [];
+var year = "";
+var monthDay = "";
+var hourMinute = "";
 var sceneMode = Cesium.SceneMode.SCENE3D;
 var maximumLevel = 1;
 var minimumLevel = 1;
@@ -57,47 +36,74 @@ var initialLatitude = 35;
 var initialHeight = 6500000;
 var viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
 var viewerArray = [];
-for (let i = 1;  i < viewerIdArray.length;  i++) {
-  viewerArray[i] = new Cesium.Viewer(viewerIdArray[i], {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, skyBox:false, skyAtmosphere:false, useBrowserRecommendedResolution:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:true});
-};
-viewerArray[0] = new Cesium.Viewer(viewerIdArray[0], {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, skyBox:false, skyAtmosphere:false, useBrowserRecommendedResolution:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:true,
- imageryProvider:new ArrowImageryProvider({maximumLevel:maximumLevel, minimumLevel:minimumLevel,
-    year: "2020",
-    monthDay: "0826",
-    hour: "04",
-    pathArray: ["tile_arrow/bufr_to_arrow/surface/synop", "tile_arrow/bufr_to_arrow/surface/synop", "tile_arrow/bufr_to_arrow/surface/synop", "tile_arrow/bufr_to_arrow/surface/synop"],
-    propertyArray: ["air temperature [K]", "dewpoint temperature [K]", "air temperature [K]", "dewpoint temperature [K]"],
-    drawArray: ["point", "point", "point", "point"],
-    viewerArray: [viewerArray[1], viewerArray[2], viewerArray[4], viewerArray[5]],
-    pixelSizeArray: [5, 5, 5, 5],
-    colorBarArray: ["pbgrf", "pbgrf", "bgrfp", "bgrfp"],
-    minValueArray: [280.0, 280.0, 280.0, 280.0],
-    maxValueArray: [290.0, 290.0, 290.0, 290.0]
-  })
-});
-viewerArray.forEach(viewer => {
-  viewer.resolutionScale = resolutionScale;
-  viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
-  viewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
-  viewer.camera.percentageChanged=percentageChanged;
-  viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, initialLatitude, initialHeight)});
-});
-viewerArray[0].camera.changed.addEventListener(() => {
-  for (let i = 1;  i < viewerIdArray.length;  i++) {
-    viewerArray[i].camera.position = viewerArray[0].camera.position;
-    viewerArray[i].camera.direction = viewerArray[0].camera.direction;
-    viewerArray[i].camera.up = viewerArray[0].camera.up;
-    viewerArray[i].camera.right = viewerArray[0].camera.right;
+var imageryLayers = new Cesium.ImageryLayerCollection();
+function setImageryLayers(param){
+  let selectElem = document.getElementById(param);
+  let selectedValue = selectElem.value;
+  let optionElemArray = selectElem.children;
+  for (let i = 0;  i < optionElemArray.length;  i++) {
+    if (optionElemArray[i].hasAttribute("selected")) {
+      optionElemArray[i].removeAttribute("selected");
+    }
+    if (optionElemArray[i].getAttribute("option") == selectedValue) {
+      optionElemArray[i].setAttribute("selected", "selected");
+    }
   };
-});
-for (let i = 1;  i < viewerIdArray.length;  i++) {
-  viewerArray[i].camera.changed.addEventListener(() => {
-    viewerArray[0].camera.position = viewerArray[i].camera.position;
-    viewerArray[0].camera.direction = viewerArray[i].camera.direction;
-    viewerArray[0].camera.up = viewerArray[i].camera.up;
-    viewerArray[0].camera.right = viewerArray[i].camera.right;
+  if (param == "year") {
+    year = selectedValue;
+  } else if (param == "monthDay") {
+    monthDay = selectedValue;
+  } else if (param == "hourMinute") {
+    hourMinute = selectedValue;
+  }
+  imageryLayers.removeAll();
+  viewerArray.forEach((viewer) => {
+    viewer.entities.removeAll();
   });
-};
+  imageryLayers.addImageryProvider(new ArrowImageryProvider({maximumLevel:maximumLevel, minimumLevel:minimumLevel,
+    year: year,
+    monthDay: monthDay,
+    hourMinute: hourMinute,
+    pathArray: ["bufr_to_arrow/surface/synop", "bufr_to_arrow/surface/synop", "bufr_to_arrow/surface/synop", "bufr_to_arrow/surface/synop", "bufr_to_arrow/surface/synop", "bufr_to_arrow/surface/synop"],
+    propertyArray: ["air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]"],
+    drawArray: ["point", "point", "point", "point", "point", "point"],
+    viewerArray: [viewerArray[1], viewerArray[2], viewerArray[3], viewerArray[4], viewerArray[5], viewerArray[6]],
+    pixelSizeArray: [5, 5, 5, 5, 5, 5],
+    colorBarArray: ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"],
+    minValueArray: [280.0, 280.0, 280.0, 280.0, 280.0, 280.0],
+    maxValueArray: [290.0, 290.0, 290.0, 290.0, 290.0, 290.0]
+  }));
+  for (let i = 1;  i < viewerIdArray.length; i++) {
+    let viewer = new Cesium.Viewer(viewerIdArray[i], {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, skyBox:false, skyAtmosphere:false, useBrowserRecommendedResolution:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:true});
+    viewer.resolutionScale = resolutionScale;
+    viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
+    viewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
+    viewer.camera.percentageChanged=percentageChanged;
+    viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, initialLatitude, initialHeight)});
+    viewer.camera.changed.addEventListener(() => {
+      viewerArray[0].camera.position = viewer.camera.position;
+      viewerArray[0].camera.direction = viewer.camera.direction;
+      viewerArray[0].camera.up = viewer.camera.up;
+      viewerArray[0].camera.right = viewer.camera.right;
+    });
+    viewerArray[i] = viewer;
+  };
+  viewerArray[0].camera.changed.addEventListener(() => {
+    for (let i = 1;  i < viewerIdArray.length; i++) {
+      viewerArray[i].camera.position = viewerArray[0].camera.position;
+      viewerArray[i].camera.direction = viewerArray[0].camera.direction;
+      viewerArray[i].camera.up = viewerArray[0].camera.up;
+      viewerArray[i].camera.right = viewerArray[0].camera.right;
+    };
+  });
+}
 </script>
+<div><select id="year" onchange="setImageryLayers('year')"></select><select id="monthDay" onchange="setImageryLayers('monthDay')"></select><select id="hourMinute" onchange="setImageryLayers('hourMinute')"></select></div>
+<table cellpadding="1" border="1" style="border-collapse:collapse;border-color:white">
+<tr><td><div class="v" id="viewer11"></div></td><td><div class="v" id="viewer12"></div></td><td><div class="v" id="viewer13"></div></td></tr>
+<tr><td><div class="v" id="viewer21"></div></td><td><div class="v" id="viewer22"></div></td><td><div class="v" id="viewer23"></div></td></tr>
+</table>
+<div style="visibility:hidden" id="controleViewer"></div>
+<div style="visibility:hidden" id="c"></div>
 </body>
 </html>
