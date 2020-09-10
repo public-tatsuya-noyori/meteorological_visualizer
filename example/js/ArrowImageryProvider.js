@@ -32,7 +32,7 @@ function ArrowImageryProvider(options) {
   this._monthDay = Cesium.defaultValue(options.monthDay, undefined);
   this._hourMinute = Cesium.defaultValue(options.hourMinute, undefined);
   this._locationDatetimeDirectory = "location_datetime";
-  this._pathArray = Cesium.defaultValue(options.pathArray, undefined);
+  this._urlPrefixArray = Cesium.defaultValue(options.urlPrefixArray, undefined);
   this._uniqueKeysArray = Cesium.defaultValue(options.uniqueKeysArray, undefined);
   this._propertyArray = Cesium.defaultValue(options.propertyArray, undefined);
   this._drawArray = Cesium.defaultValue(options.drawArray, undefined);
@@ -340,12 +340,12 @@ ArrowImageryProvider.prototype.requestImage = function (
   level,
   request
 ) {
-  for (let i = 0; i < this._pathArray.length; i++) {
+  for (let i = 0; i < this._urlPrefixArray.length; i++) {
     let propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    fetch([this._pathArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((pResponse) => {
+    fetch([this._urlPrefixArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((pResponse) => {
       if (pResponse.ok) {
         Arrow.Table.from(pResponse).then((propertyTable) => {
-          fetch([this._pathArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((lResponse) => {
+          fetch([this._urlPrefixArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((lResponse) => {
             if (lResponse.ok) {
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {
@@ -375,7 +375,7 @@ ArrowImageryProvider.prototype.requestImage = function (
                     this._viewerArray[i].entities.add({
                       position: Cesium.Cartesian3.fromDegrees(ldtRow.get('longitude [degree]'), ldtRow.get('latitude [degree]'), 0),
                       point: {
-                        pixelSize : this._pixelSizeArray[i], 
+                        pixelSize : this._pixelSizeArray[i],
                         color : color
                       }
                     });
