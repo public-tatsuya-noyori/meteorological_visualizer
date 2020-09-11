@@ -1,4 +1,42 @@
 import ArrowImageryProvider from "./ArrowImageryProvider.js";
+
+var http = "https://"
+var region = "ap-northeast-1";
+var endpoint = "s3.wasabisys.com";
+var bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
+var urlPrefix = http + "s3." + region + ".wasabisys.com"  + "/" + bucket + "/";
+AWS.config.region = region;
+var s3 = new AWS.S3({apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint)});
+var defaultPrefix = "bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level/";
+var yearOptionArray = [];
+var monthdayOptionArray = [];
+var hourminuteOptionArray = [];
+var yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
+var yearMonthdayHourminuteArray = ["", "", "",];
+var sceneMode = Cesium.SceneMode.SCENE3D;
+var maximumLevel = 1;
+var minimumLevel = 1;
+var resolutionScale = 1;
+var minimumZoomDistance = 1000000;
+var maximumZoomDistance = 6500000;
+var percentageChanged = 0.001;
+var initialLongitude = 140;
+var initialLatitude = 35;
+var initialHeight = 6500000;
+var viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
+var viewerArray = [];
+var imageryLayers = new Cesium.ImageryLayerCollection();
+var aipViewerNumArray = [1, 2, 3, 4, 5, 6];
+var aipUrlPrefixArray = [urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop"];
+var aipPropertyArray = ["air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
+var aipDrawArray = ["point", "point", "point", "point", "point", "point"];
+var aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
+var aipColorBarArray = ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"];
+var aipMinValueArray = [280.0, 280.0, 280.0, 280.0, 280.0, 280.0];
+var aipMaxValueArray = [290.0, 290.0, 290.0, 290.0, 290.0, 290.0];
+
+
+
 document.addEventListener('DOMContentLoaded', function(){
   init()
   yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
@@ -62,21 +100,15 @@ function initDatetimeSelector(param){
 }
 async function setDatetimeSelectors(param){
   if (param != "year" && param != "monthday" && param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix).then((result) => {
-      yearOptionArray = result;
-    });
+    yearOptionArray = await getChildDirectoryArray(defaultPrefix)
     yearMonthdayHourminuteArray[0] = yearOptionArray[yearOptionArray.length - 1];
   }
   if (param != "monthday" && param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/").then((result) => {
-      monthdayOptionArray = result;
-    });
+    monthdayOptionArray = await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/")
     yearMonthdayHourminuteArray[1] = monthdayOptionArray[monthdayOptionArray.length - 1];
   }
   if (param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/").then((result) => {
-      hourminuteOptionArray = result;
-    });
+    hourminuteOptionArray = await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/")
     yearMonthdayHourminuteArray[2] = hourminuteOptionArray[hourminuteOptionArray.length - 1];
   }
   if (param == "year" || param == "monthday" || param == "hourminute") {
