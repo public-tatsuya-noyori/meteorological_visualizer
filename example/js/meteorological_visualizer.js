@@ -1,29 +1,34 @@
 import ArrowImageryProvider from "./ArrowImageryProvider.js";
+import {getChildDirectoryArray} from "./get_s3_info.js"
+import {initDatetimeSelector} from "./DateTimeDomViewer.js"
 
-var http = "https://"
-var region = "ap-northeast-1";
-var endpoint = "s3.wasabisys.com";
-var bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
-var urlPrefix = http + "s3." + region + ".wasabisys.com"  + "/" + bucket + "/";
+const http = "https://"
+const region = "ap-northeast-1";
+const endpoint = "s3.wasabisys.com";
+const bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
+const urlPrefix = http + "s3." + region + ".wasabisys.com"  + "/" + bucket + "/";
 AWS.config.region = region;
 var s3 = new AWS.S3({apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint)});
-var defaultPrefix = "bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level/";
+const defaultPrefix = "bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level/";
+
 var yearOptionArray = [];
 var monthdayOptionArray = [];
 var hourminuteOptionArray = [];
-var yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
+
+const yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
+
 var yearMonthdayHourminuteArray = ["", "", "",];
-var sceneMode = Cesium.SceneMode.SCENE3D;
-var maximumLevel = 1;
-var minimumLevel = 1;
-var resolutionScale = 1;
-var minimumZoomDistance = 1000000;
-var maximumZoomDistance = 6500000;
-var percentageChanged = 0.001;
-var initialLongitude = 140;
-var initialLatitude = 35;
-var initialHeight = 6500000;
-var viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
+const sceneMode = Cesium.SceneMode.SCENE3D;
+const maximumLevel = 1;
+const minimumLevel = 1;
+const resolutionScale = 1;
+const minimumZoomDistance = 1000000;
+const maximumZoomDistance = 6500000;
+const percentageChanged = 0.001;
+const initialLongitude = 140;
+const initialLatitude = 35;
+const initialHeight = 6500000;
+const viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
 var viewerArray = [];
 var imageryLayers = new Cesium.ImageryLayerCollection();
 var aipViewerNumArray = [1, 2, 3, 4, 5, 6];
@@ -42,18 +47,12 @@ document.addEventListener('DOMContentLoaded', function(){
   yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
     let select = document.getElementById(yearMonthdayHourminuteId);
     select.addEventListener('change', function(){
-      setDatetimeSelectors(yearMonthdayHourminuteId)
+      setDatetimeSelectors(s3,yearMonthdayHourminuteId)
     });
   })
 });
-async function getChildDirectoryArray(prefix) {
-  let childDirectoryArray = [];
-  const response = await s3.makeUnauthenticatedRequest('listObjectsV2', {Bucket: bucket, Prefix: prefix, Delimiter: "/"}).promise();
-  response.CommonPrefixes.forEach(commonPrefix => {
-    childDirectoryArray.push(commonPrefix.Prefix.replace(prefix, "").replace("/", ""));
-  });
-  return childDirectoryArray;
-}
+
+
 function setViewer(){
   imageryLayers.removeAll();
   for (let i = 1; i < viewerIdArray.length; i++) {
@@ -77,38 +76,25 @@ function setViewer(){
     maxValueArray: aipMaxValueArray
   }));
 }
-function initDatetimeSelector(param){
-  let selectElem = document.getElementById(param);
-  let optionArray = [];
-  selectElem.textContent = null;
-  if (param == "year") {
-    optionArray = yearOptionArray;
-  } else if (param == "monthday") {
-    optionArray = monthdayOptionArray;
-  } else if (param == "hourminute") {
-    optionArray = hourminuteOptionArray;
-  }
-  for (let i = 0; i < optionArray.length; i++) {
-    let optionElem = document.createElement("option");
-    optionElem.setAttribute("option", optionArray[i]);
-    optionElem.textContent = optionArray[i];
-    if (i == optionArray.length - 1) {
-      optionElem.setAttribute("selected", "selected");
-    }
-    selectElem.appendChild(optionElem);
-  }
-}
-async function setDatetimeSelectors(param){
+
+
+
+async function setDatetimeSelectors(s3,param){
+  //let yearMonthdayHourminuteArray = ["", "", ""]
+  let OptionDic = {"year":[],"monthday":[],"hourminute":[]}
   if (param != "year" && param != "monthday" && param != "hourminute") {
-    yearOptionArray = await getChildDirectoryArray(defaultPrefix)
+    yearOptionArray = await getChildDirectoryArray(s3,defaultPrefix, bucket)
+    OptionDic["year"] = yearOptionArray
     yearMonthdayHourminuteArray[0] = yearOptionArray[yearOptionArray.length - 1];
   }
   if (param != "monthday" && param != "hourminute") {
-    monthdayOptionArray = await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/")
+    monthdayOptionArray = await getChildDirectoryArray(s3,defaultPrefix + yearMonthdayHourminuteArray[0] + "/", bucket)
+    OptionDic["monthday"] = monthdayOptionArray
     yearMonthdayHourminuteArray[1] = monthdayOptionArray[monthdayOptionArray.length - 1];
   }
   if (param != "hourminute") {
-    hourminuteOptionArray = await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/")
+    hourminuteOptionArray = await getChildDirectoryArray(s3,defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/", bucket)
+    OptionDic["hourminute"] = hourminuteOptionArray
     yearMonthdayHourminuteArray[2] = hourminuteOptionArray[hourminuteOptionArray.length - 1];
   }
   if (param == "year" || param == "monthday" || param == "hourminute") {
@@ -140,15 +126,18 @@ async function setDatetimeSelectors(param){
       selectElem.appendChild(optionElem);
     }
     for (let i = idNum + 1; i < yearMonthdayHourminuteIdArray.length; i++) {
-      initDatetimeSelector(yearMonthdayHourminuteIdArray[i]);
+      let item = yearMonthdayHourminuteIdArray[i]
+      initDatetimeSelector(item,OptionDic[item])
     }
   } else {
     yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
-      initDatetimeSelector(yearMonthdayHourminuteId);
+      initDatetimeSelector(yearMonthdayHourminuteId,OptionDic[yearMonthdayHourminuteId]);
     });
   }
   setViewer();
 }
+
+
 function init(){
   viewerIdArray.forEach(viewerId => {
     let viewer = new Cesium.Viewer(viewerId, {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, shouldAnimate:true, skyBox:false, skyAtmosphere:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:true});
@@ -176,5 +165,5 @@ function init(){
     });
   };
   imageryLayers = viewerArray[0].imageryLayers;
-  setDatetimeSelectors("");
+  setDatetimeSelectors(s3,"");
 }
