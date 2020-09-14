@@ -352,33 +352,37 @@ ArrowImageryProvider.prototype.requestImage = function (
                   for (let j = 0; j < propertyTable.count(); j++) {
                     let indicator = propertyTable.get(j).get('indicator');
                     let id = propertyTable.get(j).get('id')
-                    let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)])).get(0);
-                    let value = propertyTable.get(j).get(this._propertyArray[i]);
-                    let normalizedValue = 0.0;
-                    let color = Cesium.Color.BLACK;
-                    if (value >= this._maxValueArray[i]) {
-                      normalizedValue = 1.0
-                    } else if (value <= this._minValueArray[i]) {
-                      normalizedValue = 0.0
-                    } else {
-                      normalizedValue = (value - this._minValueArray[i]) / (this._maxValueArray[i] - this._minValueArray[i])
-                    }
-                    if(this._colorBarArray[i] == "bgr") {
-                      color = Cesium.Color.fromHsl((1.0 - normalizedValue) * 2.0 / 3.0, 1.0, 0.5, 1.0);
-                    } else if (this._colorBarArray[i] == "bgrfp") {
-                      color = Cesium.Color.fromHsl((8.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
-                    } else if (this._colorBarArray[i] == "pbgrf") {
-                      color = Cesium.Color.fromHsl((9.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
-                    } else if (this._colorBarArray[i] == "rgbr") {
-                      color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
-                    }
-                    this._viewerArray[i].entities.add({
-                      position: Cesium.Cartesian3.fromDegrees(ldtRow.get('longitude [degree]'), ldtRow.get('latitude [degree]'), 0),
-                      point: {
-                        pixelSize : this._pixelSizeArray[i],
-                        color : color
+                    let filtered = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
+                    if (filtered.count() == 1) {
+                      let value = propertyTable.get(j).get(this._propertyArray[i]);
+                      let normalizedValue = 0.0;
+                      let color = Cesium.Color.BLACK;
+                      if (value >= this._maxValueArray[i]) {
+                        normalizedValue = 1.0
+                      } else if (value <= this._minValueArray[i]) {
+                        normalizedValue = 0.0
+                      } else {
+                        normalizedValue = (value - this._minValueArray[i]) / (this._maxValueArray[i] - this._minValueArray[i])
                       }
-                    });
+                      if(this._colorBarArray[i] == "bgr") {
+                        color = Cesium.Color.fromHsl((1.0 - normalizedValue) * 2.0 / 3.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "bgrfp") {
+                        color = Cesium.Color.fromHsl((8.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "pbgrf") {
+                        color = Cesium.Color.fromHsl((9.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "rgbr") {
+                        color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
+                      }
+                      filtered.scan((locationDatetime_index) => {
+                        this._viewerArray[i].entities.add({
+                          position: Cesium.Cartesian3.fromDegrees(filtered.getColumn('longitude [degree]').get(locationDatetime_index), filtered.getColumn('latitude [degree]').get(locationDatetime_index), 0),
+                          point: {
+                            pixelSize : this._pixelSizeArray[i],
+                            color : color
+                          }
+                        });
+                      });
+                    }
                   }
                 }
               });
