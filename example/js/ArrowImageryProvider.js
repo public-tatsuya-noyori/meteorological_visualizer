@@ -352,8 +352,8 @@ ArrowImageryProvider.prototype.requestImage = function (
                   for (let j = 0; j < propertyTable.count(); j++) {
                     let indicator = propertyTable.get(j).get('indicator');
                     let id = propertyTable.get(j).get('id')
-                    let filtered = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
-                    if (filtered.count() == 1) {
+                    let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
+                    if (ldtRow.count() == 1) {
                       let value = propertyTable.get(j).get(this._propertyArray[i]);
                       let normalizedValue = 0.0;
                       let color = Cesium.Color.BLACK;
@@ -373,15 +373,17 @@ ArrowImageryProvider.prototype.requestImage = function (
                       } else if (this._colorBarArray[i] == "rgbr") {
                         color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
                       }
-                      filtered.scan((locationDatetime_index) => {
+                      ldtRow.scan((index) => {
                         this._viewerArray[i].entities.add({
-                          position: Cesium.Cartesian3.fromDegrees(filtered.getColumn('longitude [degree]').get(locationDatetime_index), filtered.getColumn('latitude [degree]').get(locationDatetime_index), 0),
+                          position: Cesium.Cartesian3.fromDegrees(locationDatetimeTable.get(index).get('longitude [degree]'), locationDatetimeTable.get(index).get('latitude [degree]'), 0),
                           point: {
                             pixelSize : this._pixelSizeArray[i],
                             color : color
                           }
                         });
                       });
+                    } else {
+                      console.log("not unique")
                     }
                   }
                 }
