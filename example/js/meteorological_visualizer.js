@@ -1,12 +1,12 @@
 import ArrowImageryProvider from "./ArrowImageryProvider.js";
 document.addEventListener('DOMContentLoaded', function(){
-  init()
+  init();
   yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
     let select = document.getElementById(yearMonthdayHourminuteId);
     select.addEventListener('change', function(){
       setDatetimeSelectors(yearMonthdayHourminuteId)
     });
-  })
+  });
 });
 async function getChildDirectoryArray(prefix) {
   let childDirectoryArray = [];
@@ -39,81 +39,66 @@ function setViewer(){
     maxValueArray: aipMaxValueArray
   }));
 }
-function initDatetimeSelector(param){
-  let selectElem = document.getElementById(param);
-  let optionArray = [];
-  selectElem.textContent = null;
-  if (param == "year") {
-    optionArray = yearOptionArray;
-  } else if (param == "monthday") {
-    optionArray = monthdayOptionArray;
-  } else if (param == "hourminute") {
-    optionArray = hourminuteOptionArray;
-  }
-  for (let i = 0; i < optionArray.length; i++) {
-    let optionElem = document.createElement("option");
-    optionElem.setAttribute("option", optionArray[i]);
-    optionElem.textContent = optionArray[i];
-    if (i == optionArray.length - 1) {
-      optionElem.setAttribute("selected", "selected");
-    }
-    selectElem.appendChild(optionElem);
-  }
-}
 async function setDatetimeSelectors(param){
-  if (param != "year" && param != "monthday" && param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix).then((result) => {
-      yearOptionArray = result;
-    });
-    yearMonthdayHourminuteArray[0] = yearOptionArray[yearOptionArray.length - 1];
-  }
-  if (param != "monthday" && param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/").then((result) => {
-      monthdayOptionArray = result;
-    });
-    yearMonthdayHourminuteArray[1] = monthdayOptionArray[monthdayOptionArray.length - 1];
-  }
-  if (param != "hourminute") {
-    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/").then((result) => {
-      hourminuteOptionArray = result;
-    });
-    yearMonthdayHourminuteArray[2] = hourminuteOptionArray[hourminuteOptionArray.length - 1];
-  }
+  let optionArray = [[],[],[]];
+  let idNum = 0;
   if (param == "year" || param == "monthday" || param == "hourminute") {
-    let selectElem = document.getElementById(param);
-    let selectedValue = selectElem.value;
-    let optionArray = [];
-    let idNum = 0;
-    selectElem.textContent = null;
     if (param == "year") {
-      yearMonthdayHourminuteArray[0] = selectedValue;
-      optionArray = yearOptionArray;
       idNum = 0;
     } else if (param == "monthday") {
-      yearMonthdayHourminuteArray[1] = selectedValue;
-      optionArray = monthdayOptionArray;
       idNum = 1;
     } else if (param == "hourminute") {
-      yearMonthdayHourminuteArray[2] = selectedValue;
-      optionArray = hourminuteOptionArray;
       idNum = 2;
     }
-    for (let i = 0; i < optionArray.length; i++) {
-      let optionElem = document.createElement("option");
-      optionElem.setAttribute("option", optionArray[i]);
-      optionElem.textContent = optionArray[i];
-      if (optionArray[i] == selectedValue) {
+    let prefix = defaultPrefix;
+    for (let i = 0; i < idNum; i++) {
+      prefix = prefix + yearMonthdayHourminuteArray[i] + "/";
+    }
+    let selectElem = document.getElementById(param);
+    for (let i = idNum; i < yearMonthdayHourminuteArray.length; i++) {
+      await getChildDirectoryArray(prefix).then((result) => {
+        optionArray[i] = result;
+      });
+      if (i == idNum) {
+        yearMonthdayHourminuteArray[idNum] = selectElem.value;
+      } else {
+        selectElem = document.getElementById(yearMonthdayHourminuteIdArray[i]);
+        selectElem.textContent = null;
+      }
+      prefix = prefix + yearMonthdayHourminuteArray[i] + "/";
+    }
+  } else {
+    await getChildDirectoryArray(defaultPrefix).then((result) => {
+      optionArray[0] = result;
+    });
+    yearMonthdayHourminuteArray[0] = optionArray[0][optionArray[0].length - 1];
+    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/").then((result) => {
+      optionArray[1] = result;
+    });
+    yearMonthdayHourminuteArray[1] = optionArray[1][optionArray[1].length - 1];
+    await getChildDirectoryArray(defaultPrefix + yearMonthdayHourminuteArray[0] + "/"  + yearMonthdayHourminuteArray[1] + "/").then((result) => {
+      optionArray[2] = result;
+    });
+    yearMonthdayHourminuteArray[2] = optionArray[2][optionArray[2].length - 1];
+  }
+  for (let i = idNum; i < yearMonthdayHourminuteArray.length; i++) {
+    let selected = false;
+    let optionElem = "";
+    let selectElem = document.getElementById(yearMonthdayHourminuteIdArray[i]);
+    for (let j = 0; j < optionArray[i].length; j++) {
+      optionElem = document.createElement("option");
+      optionElem.setAttribute("option", optionArray[i][j]);
+      optionElem.textContent = optionArray[i][j];
+      if (optionArray[i][j] == yearMonthdayHourminuteArray[i]) {
+        optionElem.setAttribute("selected", "selected");
+        selected = true;
+      }
+      if (j == optionArray[i].length - 1 & !selected) {
+        yearMonthdayHourminuteArray[i] = optionArray[i][optionArray[i].length - 1];
         optionElem.setAttribute("selected", "selected");
       }
       selectElem.appendChild(optionElem);
     }
-    for (let i = idNum + 1; i < yearMonthdayHourminuteIdArray.length; i++) {
-      initDatetimeSelector(yearMonthdayHourminuteIdArray[i]);
-    }
-  } else {
-    yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
-      initDatetimeSelector(yearMonthdayHourminuteId);
-    });
   }
   setViewer();
 }
