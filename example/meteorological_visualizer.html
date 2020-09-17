@@ -36,12 +36,12 @@ var viewerArray = [];
 var imageryLayers = new Cesium.ImageryLayerCollection();
 var aipViewerNumArray = [1, 2, 3, 4, 5, 6];
 var aipUrlPrefixArray = [urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop"];
-var aipPropertyArray = ["air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
+var aipPropertyArray = ["air temperature [K]", "wind speed [m/s]", "wind direction [degree]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
 var aipDrawArray = ["point", "point", "point", "point", "point", "point"];
 var aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
-var aipColorBarArray = ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"];
-var aipMinValueArray = [280.0, 280.0, 280.0, 280.0, 280.0, 280.0];
-var aipMaxValueArray = [290.0, 290.0, 290.0, 290.0, 290.0, 290.0];
+var aipColorBarArray = ["pbgrf", "pbgrf", "rgbr", "pbgrf", "pbgrf", "pbgrf"];
+var aipMinValueArray = [263.15, 0.0, 0.0, 90000.0, 263.15, 263.15];
+var aipMaxValueArray = [313.15, 45.0, 360.0, 105000.0, 313.15, 313.15];
 </script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 <style>.v {height:360px;width:360px}</style>
