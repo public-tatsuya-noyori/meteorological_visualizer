@@ -1,27 +1,24 @@
 import { getChildDirectoryArray } from "./get_s3_info.js"
 import { initDatetimeSelector, setViewer } from "./DateTimeDomViewer.js"
+import {constance} from "./const.js"
 
-const http = "https://"
-const region = "ap-northeast-1";
-const endpoint = "s3.wasabisys.com";
-const bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
-const urlPrefix = http + "s3." + region + ".wasabisys.com" + "/" + bucket + "/";
+
+
+const _com = new constance()
+
+
+
+const region = _com.region 
+const endpoint = _com.endpoint
+const bucket = _com.bucket
+const defaultPrefix = _com.defaultPrefix
+const yearMonthdayHourminuteIdArray = _com.yearMonthdayHourminuteIdArray
+const viewerIdArray = _com.viewerIdArray
+const sceneMode = _com.sceneMode
+
 AWS.config.region = region;
 const s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
-const defaultPrefix = "bufr_to_arrow/surface/synop/pressure_reduced_to_mean_sea_level/";
-const yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
-const sceneMode = Cesium.SceneMode.SCENE3D;
-const maximumLevel = 1;
-const minimumLevel = 1;
-const viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
-const aipViewerNumArray = [1, 2, 3, 4, 5, 6];
-const aipUrlPrefixArray = [urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop", urlPrefix + "bufr_to_arrow/surface/synop"];
-const aipPropertyArray = ["air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
-const aipDrawArray = ["point", "point", "point", "point", "point", "point"];
-const aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
-const aipColorBarArray = ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"];
-const aipMinValueArray = [280.0, 280.0, 280.0, 280.0, 280.0, 280.0];
-const aipMaxValueArray = [290.0, 290.0, 290.0, 290.0, 290.0, 290.0];
+
 
 var yearOptionArray = [];
 var monthdayOptionArray = [];
@@ -50,6 +47,7 @@ async function setDatetimeSelectors(s3, param) {
 
   if (param != "year" && param != "monthday" && param != "hourminute") {
     yearOptionArray = await getChildDirectoryArray(s3, defaultPrefix, bucket)
+    console.log(yearOptionArray)
     OptionDic["year"] = yearOptionArray
     yearMonthdayHourminuteArray[0] = yearOptionArray[yearOptionArray.length - 1];
   }
@@ -96,6 +94,8 @@ async function setDatetimeSelectors(s3, param) {
       initDatetimeSelector(item, OptionDic[item])
     }
   } else {
+    console.log(OptionDic)
+    console.log(yearMonthdayHourminuteIdArray)
     yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
       initDatetimeSelector(yearMonthdayHourminuteId, OptionDic[yearMonthdayHourminuteId]);
     });
