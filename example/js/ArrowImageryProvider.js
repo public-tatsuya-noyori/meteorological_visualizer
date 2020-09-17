@@ -350,9 +350,10 @@ ArrowImageryProvider.prototype.requestImage = function (
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {
                   for (let j = 0; j < propertyTable.count(); j++) {
+                    let elapsedTime = propertyTable.get(j).get('elapsed time [s]');
                     let indicator = propertyTable.get(j).get('indicator');
                     let id = propertyTable.get(j).get('id')
-                    let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
+                    let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('elapsed time [s]').eq(elapsedTime), Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
                     if (ldtRow.count() == 1) {
                       let value = propertyTable.get(j).get(this._propertyArray[i]);
                       let normalizedValue = 0.0;
@@ -383,7 +384,7 @@ ArrowImageryProvider.prototype.requestImage = function (
                         });
                       });
                     } else {
-                      console.log("not unique")
+                      console.log("not unique:" + ldtRow.count())
                     }
                   }
                 }

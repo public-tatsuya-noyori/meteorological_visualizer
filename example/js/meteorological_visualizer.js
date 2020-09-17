@@ -63,8 +63,8 @@ async function setDatetimeSelectors(param){
         yearMonthdayHourminuteArray[idNum] = selectElem.value;
       } else {
         selectElem = document.getElementById(yearMonthdayHourminuteIdArray[i]);
-        selectElem.textContent = null;
       }
+      selectElem.textContent = null;
       prefix = prefix + yearMonthdayHourminuteArray[i] + "/";
     }
   } else {
