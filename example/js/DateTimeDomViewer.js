@@ -1,8 +1,8 @@
 import {constance} from "./const.js"
 import ArrowImageryProvider from "./ArrowImageryProvider.js";
 
-var con = new constance()
-console.log(con.maximumLevel)
+var _com = new constance()
+console.log(_com.maximumLevel)
 
 export function initDatetimeSelector(param, optionArray = []) {
     let selectElem = document.getElementById(param);
@@ -21,27 +21,28 @@ export function initDatetimeSelector(param, optionArray = []) {
 
 
 export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray) {
+    console.trace(yearMonthdayHourminuteArray)
     imageryLayers.removeAll();
-    for (let i = 1; i < con.viewerIdArray.length; i++) {
+    for (let i = 1; i < _com.viewerIdArray.length; i++) {
         viewerArray[i].entities.removeAll();
     };
     let aipViewerArray = [];
-    con.aipViewerNumArray.forEach(aipViewerNum => {
+    _com.aipViewerNumArray.forEach(aipViewerNum => {
         aipViewerArray.push(viewerArray[aipViewerNum]);
     });
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
-        maximumLevel: con.maximumLevel, 
-        minimumLevel: con.minimumLevel,
-        urlPrefixArray: con.aipUrlPrefixArray,
-        propertyArray: con.aipPropertyArray,
-        drawArray: con.aipDrawArray,
-        pixelSizeArray: con.aipPixelSizeArray,
-        colorBarArray: con.aipColorBarArray,
-        minValueArray: con.aipMinValueArray,
-        maxValueArray: con.aipMaxValueArray,
+        maximumLevel: _com.maximumLevel, 
+        minimumLevel: _com.minimumLevel,
+        urlPrefixArray: _com.aipUrlPrefixArray,
+        propertyArray: _com.aipPropertyArray,
+        drawArray: _com.aipDrawArray,
+        pixelSizeArray: _com.aipPixelSizeArray,
+        colorBarArray: _com.aipColorBarArray,
+        minValueArray: _com.aipMinValueArray,
+        maxValueArray: _com.aipMaxValueArray,
         viewerArray: aipViewerArray,
-        year: yearMonthdayHourminuteArray[0],
-        monthDay: yearMonthdayHourminuteArray[1],
-        hourMinute: yearMonthdayHourminuteArray[2],
+        year: yearMonthdayHourminuteArray["year"],
+        monthDay: yearMonthdayHourminuteArray["monthday"],
+        hourMinute: yearMonthdayHourminuteArray["hourminute"],
     }));
 }

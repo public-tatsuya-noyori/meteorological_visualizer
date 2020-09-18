@@ -1,6 +1,6 @@
 import { getChildDirectoryArray } from "./get_s3_info.js"
 import { initDatetimeSelector, setViewer } from "./DateTimeDomViewer.js"
-import {constance} from "./const.js"
+import { constance } from "./const.js"
 
 
 
@@ -8,7 +8,7 @@ const _com = new constance()
 
 
 
-const region = _com.region 
+const region = _com.region
 const endpoint = _com.endpoint
 const bucket = _com.bucket
 const defaultPrefix = _com.defaultPrefix
@@ -42,65 +42,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 async function setDatetimeSelectors(s3, param) {
-  //let yearMonthdayHourminuteArray = ["", "", ""]
   let OptionDic = { "year": [], "monthday": [], "hourminute": [] }
+  let Dom_param_dic = { "year": "", "monthday": "", "hourminute": "" }
 
-  if (param != "year" && param != "monthday" && param != "hourminute") {
-    yearOptionArray = await getChildDirectoryArray(s3, defaultPrefix, bucket)
-    console.log(yearOptionArray)
-    OptionDic["year"] = yearOptionArray
-    yearMonthdayHourminuteArray[0] = yearOptionArray[yearOptionArray.length - 1];
-  }
-  if (param != "monthday" && param != "hourminute") {
-    monthdayOptionArray = await getChildDirectoryArray(s3, defaultPrefix + yearMonthdayHourminuteArray[0] + "/", bucket)
-    OptionDic["monthday"] = monthdayOptionArray
-    yearMonthdayHourminuteArray[1] = monthdayOptionArray[monthdayOptionArray.length - 1];
-  }
-  if (param != "hourminute") {
-    hourminuteOptionArray = await getChildDirectoryArray(s3, defaultPrefix + yearMonthdayHourminuteArray[0] + "/" + yearMonthdayHourminuteArray[1] + "/", bucket)
-    OptionDic["hourminute"] = hourminuteOptionArray
-    yearMonthdayHourminuteArray[2] = hourminuteOptionArray[hourminuteOptionArray.length - 1];
-  }
   if (param == "year" || param == "monthday" || param == "hourminute") {
-    let selectElem = document.getElementById(param);
-    let selectedValue = selectElem.value;
-    let optionArray = [];
-    let idNum = 0;
-    selectElem.textContent = null;
-    if (param == "year") {
-      yearMonthdayHourminuteArray[0] = selectedValue;
-      optionArray = yearOptionArray;
-      idNum = 0;
-    } else if (param == "monthday") {
-      yearMonthdayHourminuteArray[1] = selectedValue;
-      optionArray = monthdayOptionArray;
-      idNum = 1;
-    } else if (param == "hourminute") {
-      yearMonthdayHourminuteArray[2] = selectedValue;
-      optionArray = hourminuteOptionArray;
-      idNum = 2;
-    }
-    for (let i = 0; i < optionArray.length; i++) {
-      let optionElem = document.createElement("option");
-      optionElem.setAttribute("option", optionArray[i]);
-      optionElem.textContent = optionArray[i];
-      if (optionArray[i] == selectedValue) {
-        optionElem.setAttribute("selected", "selected");
-      }
-      selectElem.appendChild(optionElem);
-    }
-    for (let i = idNum + 1; i < yearMonthdayHourminuteIdArray.length; i++) {
-      let item = yearMonthdayHourminuteIdArray[i]
-      initDatetimeSelector(item, OptionDic[item])
+    for (let key_param in Dom_param_dic) {
+      Dom_param_dic[key_param] = document.getElementById(key_param).value
     }
   } else {
-    console.log(OptionDic)
-    console.log(yearMonthdayHourminuteIdArray)
-    yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
-      initDatetimeSelector(yearMonthdayHourminuteId, OptionDic[yearMonthdayHourminuteId]);
-    });
+    let tmp_Prefix = defaultPrefix
+
+    for (let key_param in Dom_param_dic) {
+      console.log(tmp_Prefix)
+      let tmp_option = await getChildDirectoryArray(s3, tmp_Prefix, bucket)
+      console.log(tmp_option)
+      Dom_param_dic[key_param] = tmp_option[tmp_option.length - 1]
+      tmp_Prefix = tmp_Prefix + Dom_param_dic[key_param] + "/"
+      //ループを崩したほうが可読性が高いかも
+    }
   }
-  setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray);
+  setViewer(imageryLayers, viewerArray, Dom_param_dic);//辞書型にしているので関数の処理を変更する
+
+  OptionDic["year"] = await getChildDirectoryArray(s3, defaultPrefix, bucket)
+  OptionDic["monthday"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/", bucket)
+  OptionDic["hourminute"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/" + Dom_param_dic["monthday"] + "/", bucket)
+  for (let key_param in OptionDic) {
+    let selectElem = document.getElementById(key_param)
+    selectElem.textContent = null;
+    for (let opt of OptionDic[key_param]){
+      let optionElem = document.createElement("option");
+      optionElem.setAttribute("option",opt);
+      optionElem.textContent = opt
+      if (opt == Dom_param_dic[key_param]) {
+        optionElem.setAttribute("selected", "selected");
+      }
+      selectElem.appendChild(optionElem); 
+    }
+  }
 }
 
 
