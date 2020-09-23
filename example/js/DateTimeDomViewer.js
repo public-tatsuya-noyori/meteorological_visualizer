@@ -28,7 +28,7 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
             //ループを崩したほうが可読性が高いかも
         }
     }
-    setViewer(imageryLayers, viewerArray, Dom_param_dic);//辞書型にしているので関数の処理を変更する
+    
 
     OptionDic["year"] = await getChildDirectoryArray(s3, defaultPrefix, bucket)
     OptionDic["monthday"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/", bucket)
@@ -50,10 +50,13 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
             if (i == Option_array.length - 1 & !selected) {
                 optionElem.setAttribute("selected", "selected");
                 selected = true
+                Dom_param_dic[key_param] = opt
             }
             selectElem.appendChild(optionElem);
         }
     }
+
+    setViewer(imageryLayers, viewerArray, Dom_param_dic);//辞書型にしているので関数の処理を変更する
 }
 
 function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray) {
