@@ -8,7 +8,7 @@ const defaultPrefix = _com.defaultPrefix
 const bucket = _com.bucket
 
 
-export async function setDatetimeSelectors(s3, param,imageryLayers,viewerArray) {
+export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray) {
     let OptionDic = { "year": [], "monthday": [], "hourminute": [] }
     let Dom_param_dic = { "year": "", "monthday": "", "hourminute": "" }
 
@@ -34,14 +34,22 @@ export async function setDatetimeSelectors(s3, param,imageryLayers,viewerArray) 
     OptionDic["monthday"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/", bucket)
     OptionDic["hourminute"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/" + Dom_param_dic["monthday"] + "/", bucket)
     for (let key_param in OptionDic) {
+        let selected = false;
         let selectElem = document.getElementById(key_param)
         selectElem.textContent = null;
-        for (let opt of OptionDic[key_param]) {
+        const Option_array = OptionDic[key_param]
+        for (let i = 0; i < Option_array.length; i++) {
+            let opt = Option_array[i]
             let optionElem = document.createElement("option");
             optionElem.setAttribute("option", opt);
             optionElem.textContent = opt
             if (opt == Dom_param_dic[key_param]) {
                 optionElem.setAttribute("selected", "selected");
+                selected = true
+            }
+            if (i == Option_array.length - 1 & !selected) {
+                optionElem.setAttribute("selected", "selected");
+                selected = true
             }
             selectElem.appendChild(optionElem);
         }
