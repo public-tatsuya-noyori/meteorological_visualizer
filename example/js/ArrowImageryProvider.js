@@ -31,7 +31,7 @@ function ArrowImageryProvider(options) {
   this._year = Cesium.defaultValue(options.year, undefined);
   this._monthDay = Cesium.defaultValue(options.monthDay, undefined);
   this._hourMinute = Cesium.defaultValue(options.hourMinute, undefined);
-  this._locationDatetimeDirectory = "location_datetime";
+  this._locationDatetimeFileName = "location_datetime";
   this._urlPrefixArray = Cesium.defaultValue(options.urlPrefixArray, undefined);
   this._uniqueKeysArray = Cesium.defaultValue(options.uniqueKeysArray, undefined);
   this._propertyArray = Cesium.defaultValue(options.propertyArray, undefined);
@@ -341,11 +341,11 @@ ArrowImageryProvider.prototype.requestImage = function (
   request
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
-    let propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    fetch([this._urlPrefixArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((pResponse) => {
+    let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
+    fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")).then((pResponse) => {
       if (pResponse.ok) {
         Arrow.Table.from(pResponse).then((propertyTable) => {
-          fetch([this._urlPrefixArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join("")).then((lResponse) => {
+          fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".arrow"].join("")).then((lResponse) => {
             if (lResponse.ok) {
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {
