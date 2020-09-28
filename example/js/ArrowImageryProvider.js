@@ -31,7 +31,7 @@ function ArrowImageryProvider(options) {
   this._year = Cesium.defaultValue(options.year, undefined);
   this._monthDay = Cesium.defaultValue(options.monthDay, undefined);
   this._hourMinute = Cesium.defaultValue(options.hourMinute, undefined);
-  this._locationDatetimeDirectory = "location_datetime";
+  this._locationDatetimeFileName = "location_datetime";
   this._urlPrefixArray = Cesium.defaultValue(options.urlPrefixArray, undefined);
   this._uniqueKeysArray = Cesium.defaultValue(options.uniqueKeysArray, undefined);
   this._propertyArray = Cesium.defaultValue(options.propertyArray, undefined);
@@ -341,14 +341,16 @@ ArrowImageryProvider.prototype.requestImage = async function (
   request
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
-    let propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    let pResponse = await fetch([this._urlPrefixArray[i], "/", propertyDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join(""))
+    const propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
+    const propaerty_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")
+    const pResponse = await fetch(propaerty_url)
     if (!pResponse.ok) {
       throw new Error()
     }
+    const propertyTable = await Arrow.Table.from(pResponse)
 
-    let propertyTable = await Arrow.Table.from(pResponse)
-    let lResponse = await fetch([this._urlPrefixArray[i], "/", this._locationDatetimeDirectory, "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, ".arrow"].join(""))
+    const location_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".arrow"].join("")
+    const lResponse = await fetch(location_url)
     if (!lResponse.ok) {
       throw new Error()
     }

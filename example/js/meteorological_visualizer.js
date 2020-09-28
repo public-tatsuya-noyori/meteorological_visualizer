@@ -36,12 +36,29 @@ function init() {
   const resolutionScale = 1;
   const minimumZoomDistance = 1000000;
   const maximumZoomDistance = 6500000;
-  const percentageChanged = 0.001;
+  const percentageChanged = 0.01;
   const initialLongitude = 140;
   const initialLatitude = 35;
   const initialHeight = 6500000;
   viewerIdArray.forEach(viewerId => {
-    let viewer = new Cesium.Viewer(viewerId, { animation: false, baseLayerPicker: false, fullscreenButton: false, geocoder: false, homeButton: false, infoBox: false, sceneModePicker: false, selectionIndicator: false, timeline: false, navigationHelpButton: false, shouldAnimate: true, skyBox: false, skyAtmosphere: false, sceneMode: sceneMode, creditContainer: "c", requestRenderMode: true });
+    let viewer = new Cesium.Viewer(viewerId, {
+      animation: false,
+      baseLayerPicker: false,
+      fullscreenButton: false,
+      geocoder: false,
+      homeButton: false,
+      infoBox: false,
+      sceneModePicker: false,
+      selectionIndicator: false,
+      timeline: false,
+      navigationHelpButton: false,
+      shouldAnimate: true,
+      skyBox: false,
+      skyAtmosphere: false,
+      sceneMode: sceneMode,
+      creditContainer: "c",
+      requestRenderMode: true
+    });
     viewer.resolutionScale = resolutionScale;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
