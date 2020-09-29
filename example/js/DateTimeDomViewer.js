@@ -20,9 +20,9 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
         let tmp_Prefix = defaultPrefix
 
         for (let key_param in Dom_param_dic) {
-            console.log(tmp_Prefix)
+            //console.log(tmp_Prefix)
             let tmp_option = await getChildDirectoryArray(s3, tmp_Prefix, bucket)
-            console.log(tmp_option)
+            //console.log(tmp_option)
             Dom_param_dic[key_param] = tmp_option[tmp_option.length - 1]
             tmp_Prefix = tmp_Prefix + Dom_param_dic[key_param] + "/"
             //ループを崩したほうが可読性が高いかも
@@ -60,7 +60,7 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
 }
 
 function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray) {
-    console.trace(yearMonthdayHourminuteArray)
+    //console.trace(yearMonthdayHourminuteArray)
     imageryLayers.removeAll();
     for (let i = 1; i < _com.viewerIdArray.length; i++) {
         viewerArray[i].entities.removeAll();

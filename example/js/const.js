@@ -4,7 +4,7 @@ export class constance {
         this.region = "ap-northeast-1";
         this.endpoint = "s3.wasabisys.com";
         this.http = "https://"
-        this.bucket = "japan.meteorological.agency.open.data.aws.js.s3.explorer";
+        this.bucket = "japan.meteorological.agency.open.data";
         this.urlPrefix = this.http + "s3." + this.region + ".wasabisys.com" + "/" + this.bucket + "/";
         this.yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
         this.defaultPrefix = "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop/";
@@ -20,7 +20,7 @@ export class constance {
         this.initialHeight = 6500000;
         this.viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
         this.aipViewerNumArray = [1, 2, 3, 4, 5, 6];
-        this.synop_prefix = this.urlPrefix + this.defaultPrefix
+        this.synop_prefix = this.urlPrefix + this.defaultPrefix.slice(0,-1)
 
         this.aipUrlPrefixArray = [this.synop_prefix,
         this.synop_prefix,

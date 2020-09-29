@@ -341,9 +341,9 @@ ArrowImageryProvider.prototype.requestImage = async function (
   request
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
-    const propertyDirectory = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    const propaerty_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")
-    const pResponse = await fetch(propaerty_url)
+    const propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
+    const property_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")
+    const pResponse = await fetch(property_url)
     if (!pResponse.ok) {
       throw new Error()
     }
