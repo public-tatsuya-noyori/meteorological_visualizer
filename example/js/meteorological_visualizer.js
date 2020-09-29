@@ -41,7 +41,7 @@ function setViewer(){
 }
 async function setDatetimeSelectors(param){
   let optionArray = [[],[],[]];
-  let idNum = 0;
+  let idNum = -1;
   if (param == "year" || param == "monthday" || param == "hourminute") {
     if (param == "year") {
       idNum = 0;
@@ -81,7 +81,7 @@ async function setDatetimeSelectors(param){
     });
     yearMonthdayHourminuteArray[2] = optionArray[2][optionArray[2].length - 1];
   }
-  for (let i = idNum; i < yearMonthdayHourminuteArray.length; i++) {
+  for (let i = idNum + 1; i < yearMonthdayHourminuteArray.length; i++) {
     let selected = false;
     let optionElem = "";
     let selectElem = document.getElementById(yearMonthdayHourminuteIdArray[i]);
