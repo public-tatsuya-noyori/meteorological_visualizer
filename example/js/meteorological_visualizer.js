@@ -1,4 +1,5 @@
-import { setDatetimeSelectors, init_view_element_dom, set_view_element } from "./DateTimeDomViewer.js"
+import { init_draw_and_view } from "./init_draw_and_view.js"
+import { set_view_element } from "./change_draw_and_view.js"
 import { constance } from "./const.js"
 
 
@@ -26,15 +27,13 @@ document.addEventListener('DOMContentLoaded', function () {
   init()
   yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
     let select = document.getElementById(yearMonthdayHourminuteId);
-    select.addEventListener('change', function () {
-      setDatetimeSelectors(s3, yearMonthdayHourminuteId, imageryLayers, viewerArray)
-    });
+    select.addEventListener('change', () => set_view_element(s3, imageryLayers, viewerArray))
   })
 
   for (let i = 1; i < 7; i++) {
     const select = "view_element_" + i
     const view_elem = document.getElementById(select)
-    view_elem.addEventListener("change",() => set_view_element(imageryLayers, viewerArray))
+    view_elem.addEventListener("change", () => set_view_element(s3, imageryLayers, viewerArray))
   }
 });
 
@@ -90,7 +89,6 @@ function init() {
     });
   };
   imageryLayers = viewerArray[0].imageryLayers;
-  setDatetimeSelectors(s3, "", imageryLayers, viewerArray);
-  const opt_elemet_array = _com.opt_elemet_array
-  init_view_element_dom(opt_elemet_array)
+
+  init_draw_and_view(s3, imageryLayers, viewerArray)
 }
