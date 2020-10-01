@@ -1,4 +1,4 @@
-import { setDatetimeSelectors } from "./DateTimeDomViewer.js"
+import { setDatetimeSelectors, init_view_element_dom, set_view_element } from "./DateTimeDomViewer.js"
 import { constance } from "./const.js"
 
 
@@ -12,6 +12,7 @@ const endpoint = _com.endpoint
 const yearMonthdayHourminuteIdArray = _com.yearMonthdayHourminuteIdArray
 const viewerIdArray = _com.viewerIdArray
 const sceneMode = _com.sceneMode
+
 
 AWS.config.region = region;
 const s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
@@ -29,6 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
       setDatetimeSelectors(s3, yearMonthdayHourminuteId, imageryLayers, viewerArray)
     });
   })
+
+  for (let i = 1; i < 7; i++) {
+    const select = "view_element_" + i
+    const view_elem = document.getElementById(select)
+    view_elem.addEventListener("change",() => set_view_element(imageryLayers, viewerArray))
+  }
 });
 
 
@@ -84,4 +91,6 @@ function init() {
   };
   imageryLayers = viewerArray[0].imageryLayers;
   setDatetimeSelectors(s3, "", imageryLayers, viewerArray);
+  const opt_elemet_array = _com.opt_elemet_array
+  init_view_element_dom(opt_elemet_array)
 }

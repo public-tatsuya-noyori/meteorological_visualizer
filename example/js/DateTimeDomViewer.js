@@ -28,7 +28,7 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
             //ループを崩したほうが可読性が高いかも
         }
     }
-    
+
 
     OptionDic["year"] = await getChildDirectoryArray(s3, defaultPrefix, bucket)
     OptionDic["monthday"] = await getChildDirectoryArray(s3, defaultPrefix + Dom_param_dic["year"] + "/", bucket)
@@ -59,7 +59,38 @@ export async function setDatetimeSelectors(s3, param, imageryLayers, viewerArray
     setViewer(imageryLayers, viewerArray, Dom_param_dic);//辞書型にしているので関数の処理を変更する
 }
 
-function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray) {
+
+export function init_view_element_dom(opt_elemet_array) {
+    for (let i = 1; i < 7; i++) {
+        const select = "view_element_" + i
+        const select_elem = document.getElementById(select)
+        for (let opt of opt_elemet_array) {
+            let optionElem = document.createElement("option");
+            optionElem.setAttribute("option", opt);
+            optionElem.textContent = opt
+            select_elem.appendChild(optionElem);
+        }
+    }
+}
+
+
+export function set_view_element(imageryLayers, viewerArray) {
+    console.log("I'm called!!")
+    let Dom_param_dic = { "year": "", "monthday": "", "hourminute": "" }
+    for (let key_param in Dom_param_dic) {
+        Dom_param_dic[key_param] = document.getElementById(key_param).value
+    }
+    const propertyArray = []
+    for (let i = 1; i < 7; i++) {
+        const select = "view_element_" + i
+        const select_elem = document.getElementById(select).value
+        propertyArray.push(select_elem)
+    }
+    console.log(propertyArray)
+    setViewer(imageryLayers, viewerArray, Dom_param_dic, propertyArray)
+}
+
+function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray, _propertyArray) {
     //console.trace(yearMonthdayHourminuteArray)
     imageryLayers.removeAll();
     for (let i = 1; i < _com.viewerIdArray.length; i++) {
@@ -69,11 +100,23 @@ function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray) {
     _com.aipViewerNumArray.forEach(aipViewerNum => {
         aipViewerArray.push(viewerArray[aipViewerNum]);
     });
+
+    let propertyArray = []
+
+    if(_propertyArray == undefined){
+        propertyArray = _com.aipPropertyArray
+    }else{
+        propertyArray = _propertyArray
+    }
+
+    
+    
+
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,
         minimumLevel: _com.minimumLevel,
         urlPrefixArray: _com.aipUrlPrefixArray,
-        propertyArray: _com.aipPropertyArray,
+        propertyArray: propertyArray,
         drawArray: _com.aipDrawArray,
         pixelSizeArray: _com.aipPixelSizeArray,
         colorBarArray: _com.aipColorBarArray,
