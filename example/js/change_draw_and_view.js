@@ -31,7 +31,7 @@ function set_datetime_dom(Dom_param_dic, OptionDic ,propertyArray) {
     for (let i = 1; i < 7; i++) {
         const select = "view_element_" + i
         const select_elem = document.getElementById(select)
-        const you_select = propertyArray[i]
+        const you_select = propertyArray[i-1]
         select_elem.textContent = null;
         for (let opt of opt_elemet_array) {
             let optionElem = document.createElement("option");
