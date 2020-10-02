@@ -104,7 +104,7 @@ async function setDatetimeSelectors(param){
 }
 function init(){
   viewerIdArray.forEach(viewerId => {
-    let viewer = new Cesium.Viewer(viewerId, {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, shouldAnimate:true, skyBox:false, skyAtmosphere:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:true});
+    let viewer = new Cesium.Viewer(viewerId, {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, skyBox:false, skyAtmosphere:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:false});
     viewer.resolutionScale = resolutionScale;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;

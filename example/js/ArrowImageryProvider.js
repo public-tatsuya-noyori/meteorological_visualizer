@@ -384,7 +384,7 @@ ArrowImageryProvider.prototype.requestImage = function (
                         });
                       });
                     } else {
-                      console.log("not unique:" + ldtRow.count())
+                      console.log("not unique:" + ldtRow.count());
                     }
                   }
                 }
