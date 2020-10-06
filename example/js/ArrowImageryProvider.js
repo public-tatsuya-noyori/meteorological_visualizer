@@ -341,53 +341,55 @@ ArrowImageryProvider.prototype.requestImage = async function (
   request
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
-    const propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
-    const property_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")
-    const pResponse = await fetch(property_url)
-    if (!pResponse.ok) {
-      throw new Error()
-    }
-    const propertyTable = await Arrow.Table.from(pResponse)
-
-    const location_url = [this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".arrow"].join("")
-    const lResponse = await fetch(location_url)
-    if (!lResponse.ok) {
-      throw new Error()
-    }
-    let locationDatetimeTable = await Arrow.Table.from(lResponse)
-    if (this._drawArray[i] == 'point') {
-      for (let j = 0; j < propertyTable.count(); j++) {
-        let indicator = propertyTable.get(j).get('indicator');
-        let id = propertyTable.get(j).get('id')
-        let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
-        if (ldtRow.count() == 1) {
-          let value = propertyTable.get(j).get(this._propertyArray[i]);
-          let normalizedValue = 0.0;
-          let color = Cesium.Color.BLACK;
-          if (value >= this._maxValueArray[i]) {
-            normalizedValue = 1.0
-          } else if (value <= this._minValueArray[i]) {
-            normalizedValue = 0.0
-          } else {
-            normalizedValue = (value - this._minValueArray[i]) / (this._maxValueArray[i] - this._minValueArray[i])
-          }
-          if (this._colorBarArray[i] == "bgr") {
-            color = Cesium.Color.fromHsl((1.0 - normalizedValue) * 2.0 / 3.0, 1.0, 0.5, 1.0);
-          } else if (this._colorBarArray[i] == "bgrfp") {
-            color = Cesium.Color.fromHsl((8.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
-          } else if (this._colorBarArray[i] == "pbgrf") {
-            color = Cesium.Color.fromHsl((9.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
-          } else if (this._colorBarArray[i] == "rgbr") {
-            color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
-          }
-          ldtRow.scan((index) => {
-            this._viewerArray[i].entities.add({
-              position: Cesium.Cartesian3.fromDegrees(locationDatetimeTable.get(index).get('longitude [degree]'), locationDatetimeTable.get(index).get('latitude [degree]'), 0),
-              point: {
-                pixelSize: this._pixelSizeArray[i],
-                color: color
-              }
-            });
+    let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
+    fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")).then((pResponse) => {
+      if (pResponse.ok) {
+        Arrow.Table.from(pResponse).then((propertyTable) => {
+          fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".arrow"].join("")).then((lResponse) => {
+            if (lResponse.ok) {
+              Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
+                if (this._drawArray[i] == 'point') {
+                  for (let j = 0; j < propertyTable.count(); j++) {
+                    let elapsedTime = propertyTable.get(j).get('elapsed time [s]');
+                    let indicator = propertyTable.get(j).get('indicator');
+                    let id = propertyTable.get(j).get('id')
+                    let ldtRow = locationDatetimeTable.filter(Arrow.predicate.and([Arrow.predicate.col('elapsed time [s]').eq(elapsedTime), Arrow.predicate.col('indicator').eq(indicator), Arrow.predicate.col('id').eq(id)]));
+                    if (ldtRow.count() == 1) {
+                      let value = propertyTable.get(j).get(this._propertyArray[i]);
+                      let normalizedValue = 0.0;
+                      let color = Cesium.Color.BLACK;
+                      if (value >= this._maxValueArray[i]) {
+                        normalizedValue = 1.0
+                      } else if (value <= this._minValueArray[i]) {
+                        normalizedValue = 0.0
+                      } else {
+                        normalizedValue = (value - this._minValueArray[i]) / (this._maxValueArray[i] - this._minValueArray[i])
+                      }
+                      if(this._colorBarArray[i] == "bgr") {
+                        color = Cesium.Color.fromHsl((1.0 - normalizedValue) * 2.0 / 3.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "bgrfp") {
+                        color = Cesium.Color.fromHsl((8.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "pbgrf") {
+                        color = Cesium.Color.fromHsl((9.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
+                      } else if (this._colorBarArray[i] == "rgbr") {
+                        color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
+                      }
+                      ldtRow.scan((index) => {
+                        this._viewerArray[i].entities.add({
+                          position: Cesium.Cartesian3.fromDegrees(locationDatetimeTable.get(index).get('longitude [degree]'), locationDatetimeTable.get(index).get('latitude [degree]'), 0),
+                          point: {
+                            pixelSize : this._pixelSizeArray[i],
+                            color : color
+                          }
+                        });
+                      });
+                    } else {
+                      console.log("not unique:" + ldtRow.count());
+                    }
+                  }
+                }
+              });
+            }
           });
         } else {
           console.log("not unique")

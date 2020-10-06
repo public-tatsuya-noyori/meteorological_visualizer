@@ -89,6 +89,5 @@ function init() {
     });
   };
   imageryLayers = viewerArray[0].imageryLayers;
-
   init_draw_and_view(s3, imageryLayers, viewerArray)
 }
