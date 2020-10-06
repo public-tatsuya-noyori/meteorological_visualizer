@@ -391,14 +391,10 @@ ArrowImageryProvider.prototype.requestImage = async function (
               });
             }
           });
-        } else {
-          console.log("not unique")
-        }
+        });
       }
-    }
-
+    })
   }
-
   return document.createElement("canvas");
 };
 
