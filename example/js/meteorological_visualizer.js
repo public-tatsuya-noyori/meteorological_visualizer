@@ -37,6 +37,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+function renderLoop() {
+  for (let i = 0; i < viewerIdArray.length; i++) {
+    viewerArray[i].resize();
+    viewerArray[i].render();
+    viewerArray[i].scene.requestRender();
+  };
+  window.setTimeout(renderLoop, 200);
+}
 
 function init() {
   const resolutionScale = 1;
@@ -58,12 +66,13 @@ function init() {
       selectionIndicator: false,
       timeline: false,
       navigationHelpButton: false,
-      shouldAnimate: true,
       skyBox: false,
       skyAtmosphere: false,
       sceneMode: sceneMode,
       creditContainer: "c",
-      requestRenderMode: true
+      requestRenderMode: true,
+      maximumRenderTimeChange:Infinity,
+      useDefaultRenderLoop:false
     });
     viewer.resolutionScale = resolutionScale;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
@@ -90,4 +99,5 @@ function init() {
   };
   imageryLayers = viewerArray[0].imageryLayers;
   init_draw_and_view(s3, imageryLayers, viewerArray)
+  window.setTimeout(renderLoop, 200);
 }
