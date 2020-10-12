@@ -8,8 +8,13 @@ const defaultPrefix = _com.defaultPrefix
 const bucket = _com.bucket
 const opt_elemet_array = _com.opt_elemet_array
 
-export async function set_view_element(s3,imageryLayers, viewerArray) {
+export async function set_view_element(s3, imageryLayers, viewerArray, viewerNum) {
     console.log("I'm called!!")
+    let change_num = 0
+    if (viewerNum != undefined) {
+        change_num = viewerNum.slice(-1)
+    }
+
     const { Dom_param_dic, OptionDic } = await get_datetime_from_dom(s3)
 
     let propertyArray = []
@@ -20,18 +25,18 @@ export async function set_view_element(s3,imageryLayers, viewerArray) {
     }
     console.log(propertyArray)
 
-    set_datetime_dom(Dom_param_dic, OptionDic ,propertyArray)
-    setViewer(imageryLayers, viewerArray, Dom_param_dic, propertyArray)
+    set_datetime_dom(Dom_param_dic, OptionDic, propertyArray)
+    setViewer(imageryLayers, viewerArray, Dom_param_dic, propertyArray,change_num)
 
 }
 
-function set_datetime_dom(Dom_param_dic, OptionDic ,propertyArray) {
+function set_datetime_dom(Dom_param_dic, OptionDic, propertyArray) {
     //domをセットする
 
     for (let i = 1; i < 7; i++) {
         const select = "view_element_" + i
         const select_elem = document.getElementById(select)
-        const you_select = propertyArray[i-1]
+        const you_select = propertyArray[i - 1]
         select_elem.textContent = null;
         for (let opt of opt_elemet_array) {
             let optionElem = document.createElement("option");
