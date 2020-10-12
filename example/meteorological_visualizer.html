@@ -1,58 +1,66 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>meteorological visualizer</title>
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.747.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/apache-arrow@0.17.0/Arrow.es5.min.js"></script>
-<script src="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Cesium.js"></script>
-<script type="module" src="./js/meteorological_visualizer.js"></script>
-<script>
-var http = "https://"
-var region = "ap-northeast-1";
-var endpoint = "s3.wasabisys.com";
-var bucket = "japan.meteorological.agency.open.data";
-var urlPrefix = http + "s3." + region + ".wasabisys.com"  + "/" + bucket + "/";
-AWS.config.region = region;
-var s3 = new AWS.S3({apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint)});
-var defaultPrefix = "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop/";
-var yearOptionArray = [];
-var monthdayOptionArray = [];
-var hourminuteOptionArray = [];
-var yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
-var yearMonthdayHourminuteArray = ["", "", "",];
-var sceneMode = Cesium.SceneMode.SCENE3D;
-var maximumLevel = 1;
-var minimumLevel = 1;
-var resolutionScale = 1;
-var minimumZoomDistance = 1000000;
-var maximumZoomDistance = 6500000;
-var percentageChanged = 0.001;
-var initialLongitude = 140;
-var initialLatitude = 35;
-var initialHeight = 6500000;
-var viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
-var viewerArray = [];
-var imageryLayers = new Cesium.ImageryLayerCollection();
-var aipViewerNumArray = [1, 2, 3, 4, 5, 6];
-var aipUrlPrefixArray = [urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop", urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop", urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop", urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop", urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop", urlPrefix + "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop"];
-var aipPropertyArray = ["air temperature [K]", "wind speed [m/s]", "wind direction [degree]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
-var aipDrawArray = ["point", "point", "point", "point", "point", "point"];
-var aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
-var aipColorBarArray = ["pbgrf", "pbgrf", "rgbr", "pbgrf", "pbgrf", "pbgrf"];
-var aipMinValueArray = [263.15, 0.0, 0.0, 90000.0, 263.15, 263.15];
-var aipMaxValueArray = [313.15, 45.0, 360.0, 105000.0, 313.15, 313.15];
-</script>
-<link href="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-<style>.v {height:360px;width:360px}</style>
+    <meta charset="UTF-8">
+    <title>meteorological visualizer</title>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.747.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apache-arrow@0.17.0/Arrow.es5.min.js"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Cesium.js"></script>
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script type="module" src="./js/meteorological_visualizer.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.73/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        .v {
+            height: 360px;
+            width: 360px
+        }
+    </style>
 </head>
+
 <body>
-<div><select id="year"></select><select id="monthday"></select><select id="hourminute"></select></div>
-<table cellpadding="1" border="1" style="border-collapse:collapse;border-color:white">
-<tr><td><div class="v" id="viewer11"></div></td><td><div class="v" id="viewer12"></div></td><td><div class="v" id="viewer13"></div></td></tr>
-<tr><td><div class="v" id="viewer21"></div></td><td><div class="v" id="viewer22"></div></td><td><div class="v" id="viewer23"></div></td></tr>
-</table>
-<div style="visibility:hidden" id="controleViewer"></div>
-<div style="visibility:hidden" id="c"></div>
+    <div>
+        <select id="year"></select>
+        <select id="monthday"></select>
+        <select id="hourminute"></select>
+    </div>
+    <br>
+
+    <div>
+        1 : <select id=view_element_1></select>
+        2 : <select id=view_element_2></select>
+        3 : <select id=view_element_3></select>
+        <br>
+        4 : <select id=view_element_4></select>
+        5 : <select id=view_element_5></select>
+        6 : <select id=view_element_6></select>
+    </div>
+    <table cellpadding="1" fborder="1" style="border-collapse:collapse;border-color:white">
+        <tr>
+            <td>
+                <div class="v" id="viewer11"></div>
+            </td>
+            <td>
+                <div class="v" id="viewer12"></div>
+            </td>
+            <td>
+                <div class="v" id="viewer13"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="v" id="viewer21"></div>
+            </td>
+            <td>
+                <div class="v" id="viewer22"></div>
+            </td>
+            <td>
+                <div class="v" id="viewer23"></div>
+            </td>
+        </tr>
+    </table>
+    <div style="visibility:hidden" id="controleViewer"></div>
+    <div style="visibility:hidden" id="c"></div>
 </body>
 </html>

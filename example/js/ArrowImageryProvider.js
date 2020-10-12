@@ -334,7 +334,7 @@ ArrowImageryProvider.prototype.getTileCredits = function (
  *          should be retried later.  The resolved image may be either an
  *          Image or a Canvas DOM object.
  */
-ArrowImageryProvider.prototype.requestImage = function (
+ArrowImageryProvider.prototype.requestImage = async function (
   x,
   y,
   level,
@@ -384,7 +384,7 @@ ArrowImageryProvider.prototype.requestImage = function (
                         });
                       });
                     } else {
-                      console.log("not unique:" + ldtRow.count())
+                      console.log("not unique:" + ldtRow.count());
                     }
                   }
                 }
@@ -393,7 +393,7 @@ ArrowImageryProvider.prototype.requestImage = function (
           });
         });
       }
-    });
+    })
   }
   return document.createElement("canvas");
 };
