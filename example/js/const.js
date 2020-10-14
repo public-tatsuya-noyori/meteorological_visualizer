@@ -9,8 +9,8 @@ export class constance {
         this.yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
         this.defaultPrefix = "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop/";
         this.sceneMode = Cesium.SceneMode.SCENE3D;
-        this.maximumLevel = 1;
-        this.minimumLevel = 1;
+        this.maximumLevel = 3;
+        this.minimumLevel = 3;
         this.resolutionScale = 1;
         this.minimumZoomDistance = 1000000;
         this.maximumZoomDistance = 6500000;
