@@ -11,14 +11,14 @@ const opt_elemet_array = _com.opt_elemet_array
 
 export async function init_draw_and_view(s3, imageryLayers, viewerArray) {
 
-    const { Dom_param_dic, OptionDic } = await inti_datetime(s3)
-    inti_datetime_dom(Dom_param_dic, OptionDic)
+    const { Dom_param_dic, OptionDic } = await init_datetime(s3)
+    init_datetime_dom(Dom_param_dic, OptionDic)
     const _propertyArray = _com.aipPropertyArray
 
-    setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray)
+    setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray,0)
 }
 
-async function inti_datetime(s3) {
+async function init_datetime(s3) {
     let tmp_Prefix = defaultPrefix
     let Dom_param_dic = { "year": "", "monthday": "", "hourminute": "" }
     let OptionDic = { "year": [], "monthday": [], "hourminute": [] }
@@ -39,7 +39,7 @@ async function inti_datetime(s3) {
     return { Dom_param_dic: Dom_param_dic, OptionDic: OptionDic }
 }
 
-function inti_datetime_dom(Dom_param_dic, OptionDic) {
+function init_datetime_dom(Dom_param_dic, OptionDic) {
     for (let i = 1; i < 7; i++) {
         const select = "view_element_" + i
         const select_elem = document.getElementById(select)

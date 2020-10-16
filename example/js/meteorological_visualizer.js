@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
   for (let i = 1; i < 7; i++) {
     const select = "view_element_" + i
     const view_elem = document.getElementById(select)
-    view_elem.addEventListener("change", () => set_view_element(s3, imageryLayers, viewerArray))
+    view_elem.addEventListener("change", (e) => set_view_element(s3, imageryLayers, viewerArray,e.target.id))
   }
 });
 

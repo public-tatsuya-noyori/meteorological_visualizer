@@ -36,7 +36,10 @@ function ArrowImageryProvider(options) {
   this._uniqueKeysArray = Cesium.defaultValue(options.uniqueKeysArray, undefined);
   this._propertyArray = Cesium.defaultValue(options.propertyArray, undefined);
   this._drawArray = Cesium.defaultValue(options.drawArray, undefined);
+
   this._viewerArray = Cesium.defaultValue(options.viewerArray, undefined);
+  this._viewerNum = Cesium.defaultValue(options.viewerNum, undefined)
+
   this._pixelSizeArray = Cesium.defaultValue(options.pixelSizeArray, undefined);
   this._colorBarArray = Cesium.defaultValue(options.colorBarArray, undefined);
   this._minValueArray = Cesium.defaultValue(options.minValueArray, undefined);
@@ -341,7 +344,11 @@ ArrowImageryProvider.prototype.requestImage = async function (
   request
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
-    //console.log("prefix")
+    if(this._viewerNum != 0 && this._viewerNum != i+1){
+      //console.log("through!",i)
+      continue
+    }
+
     let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
     fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")).then((pResponse) => {
       if (pResponse.ok) {
