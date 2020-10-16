@@ -9,8 +9,8 @@ export class constance {
         this.yearMonthdayHourminuteIdArray = ["year", "monthday", "hourminute",];
         this.defaultPrefix = "RJTD/tile_arrow_dataset/bufr_to_arrow/surface/synop/";
         this.sceneMode = Cesium.SceneMode.SCENE3D;
-        this.maximumLevel = 3;
-        this.minimumLevel = 3;
+        this.maximumLevel = 1;
+        this.minimumLevel = 1;
         this.resolutionScale = 1;
         this.minimumZoomDistance = 1000000;
         this.maximumZoomDistance = 6500000;
@@ -33,8 +33,8 @@ export class constance {
         this.aipDrawArray = ["point", "point", "point", "point", "point", "point"];
         this.aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
         this.aipColorBarArray = ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"];
-        this.aipMinValueArray = [263.15, 0.0, 0.0, 90000.0, 263.15, 263.15];
-        this.aipMaxValueArray = [313.15, 45.0, 360.0, 105000.0, 313.15, 313.15];
+        this.aipMinValueArray = [263.15, 263.15, 263.15, 263.15, 263.15, 263.15];
+        this.aipMaxValueArray = [313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
 
         this.opt_elemet_array = ["air temperature [K]", "wind speed [m/s]", "wind direction [degree]"]
     }
