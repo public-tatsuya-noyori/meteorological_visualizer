@@ -340,7 +340,6 @@ ArrowImageryProvider.prototype.requestImage = async function (
   level,
   request
 ) {
-  console.log("request")
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
     //console.log("prefix")
     let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
