@@ -9,7 +9,7 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
     //console.log(viewerNum)
     imageryLayers.removeAll();
     for (let i = 1; i < _com.viewerIdArray.length; i++) {
-        if(i != viewerNum){
+        if(i != viewerNum && viewerNum != 0){
             continue
         }
         viewerArray[i].entities.removeAll();
