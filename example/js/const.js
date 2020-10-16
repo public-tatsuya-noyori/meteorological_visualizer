@@ -20,21 +20,36 @@ export class constance {
         this.initialHeight = 6500000;
         this.viewerIdArray = ["controleViewer", "viewer11", "viewer12", "viewer13", "viewer21", "viewer22", "viewer23"];
         this.aipViewerNumArray = [1, 2, 3, 4, 5, 6];
-        this.synop_prefix = this.urlPrefix + this.defaultPrefix.slice(0,-1)
+        this.synop_prefix = this.urlPrefix + this.defaultPrefix.slice(0, -1)
 
-        this.aipUrlPrefixArray = [this.synop_prefix,
-        this.synop_prefix,
-        this.synop_prefix,
-        this.synop_prefix,
-        this.synop_prefix,
-        this.synop_prefix]
+        this.aipUrlPrefixArray = [
+            this.synop_prefix,
+            this.synop_prefix,
+            this.synop_prefix,
+            this.synop_prefix,
+            this.synop_prefix,
+            this.synop_prefix
+        ]
 
-        this.aipPropertyArray = ["air temperature [K]", "air temperature [K]", "air temperature [K]","air temperature [K]", "air temperature [K]", "air temperature [K]"];
+        this.aipPropertyArray = ["air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]", "air temperature [K]"];
         this.aipDrawArray = ["point", "point", "point", "point", "point", "point"];
         this.aipPixelSizeArray = [5, 5, 5, 5, 5, 5];
         this.aipColorBarArray = ["pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf", "pbgrf"];
-        this.aipMinValueArray = [263.15, 0.0, 0.0, 90000.0, 263.15, 263.15];
-        this.aipMaxValueArray = [313.15, 45.0, 360.0, 105000.0, 313.15, 313.15];
+        this.aipMinValueArray = [263.15, 263.15, 263.15, 263.15, 263.15, 263.15];
+        this.aipMaxValueArray = [313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
+
+
+        this.MinValueDic = {
+            "air temperature [K]": 263.15,
+            "wind speed [m/s]": 0.0,
+            "wind direction [degree]": 0.0
+        }
+
+        this.MaxValueDic = {
+            "air temperature [K]": 313.15,
+            "wind speed [m/s]": 45.0,
+            "wind direction [degree]": 360.0
+        }
 
         this.opt_elemet_array = ["air temperature [K]", "wind speed [m/s]", "wind direction [degree]"]
     }

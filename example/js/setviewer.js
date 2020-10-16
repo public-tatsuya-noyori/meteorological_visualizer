@@ -28,6 +28,14 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
     }
     //console.log(aipViewerArray)
 
+    let minValueArray = []
+    let maxValueArray = []
+
+    _propertyArray.forEach(proerty => {
+        minValueArray.push(_com.MinValueDic[proerty])
+        maxValueArray.push(_com.MaxValueDic[proerty])
+    })
+
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,
         minimumLevel: _com.minimumLevel,
@@ -36,8 +44,8 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
         drawArray: _com.aipDrawArray,
         pixelSizeArray: _com.aipPixelSizeArray,
         colorBarArray: _com.aipColorBarArray,
-        minValueArray: _com.aipMinValueArray,
-        maxValueArray: _com.aipMaxValueArray,
+        minValueArray: minValueArray,
+        maxValueArray: maxValueArray,
         viewerArray: aipViewerArray,
         viewerNum: viewerNum,
         year: yearMonthdayHourminuteArray["year"],

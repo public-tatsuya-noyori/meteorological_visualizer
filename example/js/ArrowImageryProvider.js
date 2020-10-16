@@ -348,6 +348,7 @@ ArrowImageryProvider.prototype.requestImage = async function (
       //console.log("through!",i)
       continue
     }
+
     let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(" ", "_");
     fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")).then((pResponse) => {
       if (pResponse.ok) {
@@ -357,6 +358,7 @@ ArrowImageryProvider.prototype.requestImage = async function (
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {
                   for (let j = 0; j < propertyTable.count(); j++) {
+                    //console.log("prop")
                     let elapsedTime = propertyTable.get(j).get('elapsed time [s]');
                     let indicator = propertyTable.get(j).get('indicator');
                     let id = propertyTable.get(j).get('id')
@@ -377,6 +379,7 @@ ArrowImageryProvider.prototype.requestImage = async function (
                       } else if (this._colorBarArray[i] == "bgrfp") {
                         color = Cesium.Color.fromHsl((8.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
                       } else if (this._colorBarArray[i] == "pbgrf") {
+                        //console.log("this color !")
                         color = Cesium.Color.fromHsl((9.0 - normalizedValue * 11.0) / 12.0, 1.0, 0.5, 1.0);
                       } else if (this._colorBarArray[i] == "rgbr") {
                         color = Cesium.Color.fromHsl(normalizedValue, 1.0, 0.5, 1.0);
