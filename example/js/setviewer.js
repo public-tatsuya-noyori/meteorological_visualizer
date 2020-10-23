@@ -4,12 +4,12 @@ import ArrowImageryProvider from "./ArrowImageryProvider.js";
 const _com = new constance()
 
 
-export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray, _propertyArray,viewerNum) {
+export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray, _propertyArray, viewerNum) {
     //console.trace(yearMonthdayHourminuteArray)
     //console.log(viewerNum)
     imageryLayers.removeAll();
     for (let i = 1; i < _com.viewerIdArray.length; i++) {
-        if(i != viewerNum && viewerNum != 0){
+        if (i != viewerNum && viewerNum != 0) {
             continue
         }
         viewerArray[i].entities.removeAll();
@@ -35,6 +35,18 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
         minValueArray.push(_com.MinValueDic[proerty])
         maxValueArray.push(_com.MaxValueDic[proerty])
     })
+
+    if (viewerNum != 0) {
+        const max_viewerNum = "view_max_" + viewerNum
+        const min_viewerNum = "view_min_" + viewerNum
+        const mx = document.getElementById(max_viewerNum).value
+        const mn = document.getElementById(min_viewerNum).value
+        if (mx > mn) {
+            minValueArray[viewerNum - 1] = Number(mn)
+            maxValueArray[viewerNum - 1] = Number(mx)
+        }
+    }
+    console.log(minValueArray)
 
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,

@@ -33,9 +33,14 @@ document.addEventListener('DOMContentLoaded', function () {
   for (let i = 1; i < 7; i++) {
     const select = "view_element_" + i
     const view_elem = document.getElementById(select)
-    view_elem.addEventListener("change", (e) => set_view_element(s3, imageryLayers, viewerArray,e.target.id))
+    view_elem.addEventListener("change", (e) => set_view_element(s3, imageryLayers, viewerArray, e.target.id))
+    const max_or_min_change = "send_view" + i
+    const change_elem = document.getElementById(max_or_min_change)
+    change_elem.addEventListener("click", (e) => set_view_element(s3, imageryLayers, viewerArray, e.target.id))
+
   }
 });
+
 
 function renderLoop() {
   for (let i = 0; i < viewerIdArray.length; i++) {
@@ -71,8 +76,8 @@ function init() {
       sceneMode: sceneMode,
       creditContainer: "c",
       requestRenderMode: true,
-      maximumRenderTimeChange:Infinity,
-      useDefaultRenderLoop:false
+      maximumRenderTimeChange: Infinity,
+      useDefaultRenderLoop: false
     });
     viewer.resolutionScale = resolutionScale;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
