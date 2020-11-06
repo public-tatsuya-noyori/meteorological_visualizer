@@ -15,7 +15,7 @@ export async function init_draw_and_view(s3, imageryLayers, viewerArray) {
     init_datetime_dom(Dom_param_dic, OptionDic)
     const _propertyArray = _com.aipPropertyArray
 
-    setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray,0)
+    setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0, _com.aipMinValueArray, _com.aipMaxValueArray)
 }
 
 async function init_datetime(s3) {

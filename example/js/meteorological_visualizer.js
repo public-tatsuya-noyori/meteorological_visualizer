@@ -1,6 +1,7 @@
 import { init_draw_and_view } from "./init_draw_and_view.js"
 import { set_view_element } from "./change_draw_and_view.js"
 import { constance } from "./const.js"
+import { create_init_dom } from "./create_init_dom.js"
 
 
 
@@ -24,6 +25,7 @@ let viewerArray = [];
 let imageryLayers = new Cesium.ImageryLayerCollection();
 
 document.addEventListener('DOMContentLoaded', function () {
+  create_init_dom()
   init()
   yearMonthdayHourminuteIdArray.forEach(yearMonthdayHourminuteId => {
     let select = document.getElementById(yearMonthdayHourminuteId);

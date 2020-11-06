@@ -18,15 +18,34 @@ export async function set_view_element(s3, imageryLayers, viewerArray, viewerNum
     const { Dom_param_dic, OptionDic } = await get_datetime_from_dom(s3)
 
     let propertyArray = []
+    let range_array_mx = []
+    let range_array_mn = []
     for (let i = 1; i < 7; i++) {
         const select = "view_element_" + i
         const select_elem = document.getElementById(select).value
         propertyArray.push(select_elem)
+        if (change_num == 0) {
+            const range_max_elem = "view_max_" + i
+            const range_max_val = document.getElementById(range_max_elem).value
+            range_array_mx.push(Number(range_max_val))
+            const range_min_elem = "view_min_" + i
+            const range_min_val = document.getElementById(range_min_elem).value
+            range_array_mn.push(Number(range_min_val))
+        }
     }
     console.log(propertyArray)
+    console.log("max",range_array_mx)
+    console.log("min",range_array_mn)
 
     set_datetime_dom(Dom_param_dic, OptionDic, propertyArray)
-    setViewer(imageryLayers, viewerArray, Dom_param_dic, propertyArray,change_num)
+    setViewer(imageryLayers,
+        viewerArray,
+        Dom_param_dic,
+        propertyArray,
+        change_num,
+        range_array_mn,
+        range_array_mx,
+    )
 
 }
 

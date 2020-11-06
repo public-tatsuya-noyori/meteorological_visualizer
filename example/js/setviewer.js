@@ -4,7 +4,8 @@ import ArrowImageryProvider from "./ArrowImageryProvider.js";
 const _com = new constance()
 
 
-export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray, _propertyArray, viewerNum) {
+export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray,
+    _propertyArray, viewerNum, range_array_mn, range_array_mx) {
     //console.trace(yearMonthdayHourminuteArray)
     //console.log(viewerNum)
     imageryLayers.removeAll();
@@ -45,8 +46,15 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
             minValueArray[viewerNum - 1] = Number(mn)
             maxValueArray[viewerNum - 1] = Number(mx)
         }
+    } else {
+        minValueArray = range_array_mn
+        maxValueArray = range_array_mx
     }
+
+
+
     console.log(minValueArray)
+    console.log(maxValueArray)
 
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,
