@@ -1,0 +1,26 @@
+{
+  "name": "meteorological_visualizer",
+  "version": "1.0.0",
+  "description": "Cesium(https://github.com/CesiumGS/cesium)のtile arrowプラグイン。 tile arrowを読み込んでCesiumに表示させるプラグインの作成を目標とする。",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/public-tatsuya-noyori/meteorological_visualizer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/public-tatsuya-noyori/meteorological_visualizer/issues"
+  },
+  "homepage": "https://github.com/public-tatsuya-noyori/meteorological_visualizer#readme",
+  "dependencies": {
+    "serve": "^11.3.2"
+  }
+}
