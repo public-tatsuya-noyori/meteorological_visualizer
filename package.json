@@ -21,6 +21,9 @@
   },
   "homepage": "https://github.com/public-tatsuya-noyori/meteorological_visualizer#readme",
   "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react-app": "^3.1.2",
     "serve": "^11.3.2"
-  }
+  },
+  "devDependencies": {}
 }

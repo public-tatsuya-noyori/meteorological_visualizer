@@ -5,13 +5,14 @@ const _com = new constance()
 
 
 export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArray, _propertyArray, viewerNum) {
-    //console.trace(yearMonthdayHourminuteArray)
+    console.log(yearMonthdayHourminuteArray)
     //console.log(viewerNum)
     imageryLayers.removeAll();
-    for (let i = 1; i < _com.viewerIdArray.length; i++) {
+    for (let i = 1; i < viewerArray.length; i++) {
         if (i != viewerNum && viewerNum != 0) {
             continue
         }
+        
         viewerArray[i].entities.removeAll();
     };
     let aipViewerArray = [];
@@ -46,7 +47,7 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
             maxValueArray[viewerNum - 1] = Number(mx)
         }
     }
-    console.log(minValueArray)
+    console.log(yearMonthdayHourminuteArray["hourminute"])
 
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,
