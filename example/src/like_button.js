@@ -1,5 +1,6 @@
 import { setViewer } from "./js/setviewer.js";
 import { constance } from "./js/const.js";
+//import { init_datetime } from "./js/init_draw_and_view.js"
 
 const e = React.createElement;
 
@@ -13,18 +14,43 @@ function create_option(input_data) {
     return list
 }
 
+
+const _com = new constance()
+const region = _com.region
+const endpoint = _com.endpoint
+const viewerIdArray = _com.viewerIdArray
+AWS.config.region = region;
+const s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
+const _propertyArray = _com.aipPropertyArray
+let imageryLayers = new Cesium.ImageryLayerCollection();
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ODliN2Q1NS1hYTkwLTQxYWQtOTVjMy01NzFlMGRkZThhYmEiLCJpZCI6Mzc1MjUsImlhdCI6MTYwNTE2MjMxNn0.NJ33oqQu8VeX6Yh55y4TiOCtFe5Cxfk6UbddVUorHWo';
+
+
 class LikeButton extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { liked: false };
+        console.log(this.props.param)
+        this.state = {
+            year: this.props.param["year"],
+            monthday: this.props.param["monthday"],
+            hourminute: this.props.param["hourminute"]
+        };
         this.input_year_data = [2020, 2019, 2018]
         this.input_monthday_data = [1124, 1123, 1126]
         this.input_hourminute_data = [1200, 1300, 1400]
     }
 
-
-
-
+    handleChange = (event) => {
+        const kind = eval(event.target.id)
+        this.setState({kind: event.target.value });
+        console.log(event.target.id)
+        const Dom_param_dic = {
+            year: this.state.year,
+            monthday: this.state.monthday,
+            hourminute: this.state.hourminute
+        }
+        setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0)
+    }
 
     render() {
 
@@ -36,13 +62,13 @@ class LikeButton extends React.Component {
         return (
             <div>
                 <div>
-                    <select id="year">
+                    <select id="year" value={this.state.year} onChange={this.handleChange}>
                         {year_list}
                     </select>
-                    <select id="monthday">
+                    <select id="monthday" value={this.state.monthday} onChange={this.handleChange}>
                         {month_list}
                     </select>
-                    <select id="hourminute">
+                    <select id="hourminute" value={this.state.hourminute} onChange={this.handleChange}>
                         {hour_list}
                     </select>
                 </div>
@@ -55,30 +81,22 @@ class LikeButton extends React.Component {
                 <div className="v" id="viewer22"></div>
                 <div className="v" id="viewer23"></div>
 
-                <div style={{visibility:"hidden"}} id="controleViewer"></div>
-                <div style={{visibility:"hidden"}} id="c"></div>
+                <div style={{ visibility: "hidden" }} id="controleViewer"></div>
+                <div style={{ visibility: "hidden" }} id="c"></div>
 
             </div>
         );
     }
 }
 
+//async function init() {
+//const { Dom_param_dic, OptionDic } = await init_datetime(s3)
+const Dom_param_dic = {year:2020,monthday:1124,hourminute:1200}
+
 const domContainer = document.querySelector('#like_button_container');
-ReactDOM.render(e(LikeButton), domContainer);
+const figure = <LikeButton param={Dom_param_dic} />
+ReactDOM.render(figure, domContainer);
 
-const _com = new constance()
-
-
-const region = _com.region
-const endpoint = _com.endpoint
-const viewerIdArray = _com.viewerIdArray
-AWS.config.region = region;
-const s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
-const _propertyArray = _com.aipPropertyArray
-let imageryLayers = new Cesium.ImageryLayerCollection();
-
-const Dom_param_dic = { year: 2020, monthday: 1120, hourminute: 1200 }
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ODliN2Q1NS1hYTkwLTQxYWQtOTVjMy01NzFlMGRkZThhYmEiLCJpZCI6Mzc1MjUsImlhdCI6MTYwNTE2MjMxNn0.NJ33oqQu8VeX6Yh55y4TiOCtFe5Cxfk6UbddVUorHWo';
 
 let viewerArray = []
 viewerIdArray.forEach(viewerId => {
@@ -88,5 +106,4 @@ viewerIdArray.forEach(viewerId => {
 })
 
 imageryLayers = viewerArray[0].imageryLayers
-
 setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0)

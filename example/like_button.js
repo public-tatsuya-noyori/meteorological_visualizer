@@ -8,6 +8,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import { setViewer } from "./js/setviewer.js";
 import { constance } from "./js/const.js";
+//import { init_datetime } from "./js/init_draw_and_view.js"
 
 var e = React.createElement;
 
@@ -25,6 +26,16 @@ function create_option(input_data) {
     return list;
 }
 
+var _com = new constance();
+var region = _com.region;
+var endpoint = _com.endpoint;
+var viewerIdArray = _com.viewerIdArray;
+AWS.config.region = region;
+var s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
+var _propertyArray = _com.aipPropertyArray;
+var imageryLayers = new Cesium.ImageryLayerCollection();
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ODliN2Q1NS1hYTkwLTQxYWQtOTVjMy01NzFlMGRkZThhYmEiLCJpZCI6Mzc1MjUsImlhdCI6MTYwNTE2MjMxNn0.NJ33oqQu8VeX6Yh55y4TiOCtFe5Cxfk6UbddVUorHWo';
+
 var LikeButton = function (_React$Component) {
     _inherits(LikeButton, _React$Component);
 
@@ -33,7 +44,24 @@ var LikeButton = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (LikeButton.__proto__ || Object.getPrototypeOf(LikeButton)).call(this, props));
 
-        _this.state = { liked: false };
+        _this.handleChange = function (event) {
+            var kind = eval(event.target.id);
+            _this.setState({ kind: event.target.value });
+            console.log(event.target.id);
+            var Dom_param_dic = {
+                year: _this.state.year,
+                monthday: _this.state.monthday,
+                hourminute: _this.state.hourminute
+            };
+            setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0);
+        };
+
+        console.log(_this.props.param);
+        _this.state = {
+            year: _this.props.param["year"],
+            monthday: _this.props.param["monthday"],
+            hourminute: _this.props.param["hourminute"]
+        };
         _this.input_year_data = [2020, 2019, 2018];
         _this.input_monthday_data = [1124, 1123, 1126];
         _this.input_hourminute_data = [1200, 1300, 1400];
@@ -56,17 +84,17 @@ var LikeButton = function (_React$Component) {
                     null,
                     React.createElement(
                         "select",
-                        { id: "year" },
+                        { id: "year", value: this.state.year, onChange: this.handleChange },
                         year_list
                     ),
                     React.createElement(
                         "select",
-                        { id: "monthday" },
+                        { id: "monthday", value: this.state.monthday, onChange: this.handleChange },
                         month_list
                     ),
                     React.createElement(
                         "select",
-                        { id: "hourminute" },
+                        { id: "hourminute", value: this.state.hourminute, onChange: this.handleChange },
                         hour_list
                     )
                 ),
@@ -86,21 +114,15 @@ var LikeButton = function (_React$Component) {
     return LikeButton;
 }(React.Component);
 
+//async function init() {
+//const { Dom_param_dic, OptionDic } = await init_datetime(s3)
+
+
+var Dom_param_dic = { year: 2020, monthday: 1124, hourminute: 1200 };
+
 var domContainer = document.querySelector('#like_button_container');
-ReactDOM.render(e(LikeButton), domContainer);
-
-var _com = new constance();
-
-var region = _com.region;
-var endpoint = _com.endpoint;
-var viewerIdArray = _com.viewerIdArray;
-AWS.config.region = region;
-var s3 = new AWS.S3({ apiVersion: "2014-10-01", endpoint: new AWS.Endpoint(endpoint) });
-var _propertyArray = _com.aipPropertyArray;
-var imageryLayers = new Cesium.ImageryLayerCollection();
-
-var Dom_param_dic = { year: 2020, monthday: 1120, hourminute: 1200 };
-Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ODliN2Q1NS1hYTkwLTQxYWQtOTVjMy01NzFlMGRkZThhYmEiLCJpZCI6Mzc1MjUsImlhdCI6MTYwNTE2MjMxNn0.NJ33oqQu8VeX6Yh55y4TiOCtFe5Cxfk6UbddVUorHWo';
+var figure = React.createElement(LikeButton, { param: Dom_param_dic });
+ReactDOM.render(figure, domContainer);
 
 var viewerArray = [];
 viewerIdArray.forEach(function (viewerId) {
@@ -110,5 +132,4 @@ viewerIdArray.forEach(function (viewerId) {
 });
 
 imageryLayers = viewerArray[0].imageryLayers;
-
 setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0);

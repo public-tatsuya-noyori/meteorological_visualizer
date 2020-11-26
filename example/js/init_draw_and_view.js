@@ -9,7 +9,7 @@ const bucket = _com.bucket
 const opt_elemet_array = _com.opt_elemet_array
 
 
-export async function init_draw_and_view(s3, imageryLayers, viewerArray) {
+async function init_draw_and_view(s3, imageryLayers, viewerArray) {
 
     const { Dom_param_dic, OptionDic } = await init_datetime(s3)
     init_datetime_dom(Dom_param_dic, OptionDic)
@@ -18,7 +18,7 @@ export async function init_draw_and_view(s3, imageryLayers, viewerArray) {
     setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray,0)
 }
 
-async function init_datetime(s3) {
+export async function init_datetime(s3) {
     let tmp_Prefix = defaultPrefix
     let Dom_param_dic = { "year": "", "monthday": "", "hourminute": "" }
     let OptionDic = { "year": [], "monthday": [], "hourminute": [] }
