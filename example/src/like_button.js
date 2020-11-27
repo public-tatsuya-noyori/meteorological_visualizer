@@ -14,6 +14,15 @@ function create_option(input_data) {
     return list
 }
 
+function renderLoop(viewerArray) {
+    for (let i = 0; i < viewerIdArray.length; i++) {
+        viewerArray[i].resize();
+        viewerArray[i].render();
+        viewerArray[i].scene.requestRender();
+    };
+    window.setTimeout(renderLoop(viewerArray), 200);
+}
+
 
 const _com = new constance()
 const region = _com.region
@@ -27,30 +36,100 @@ Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOi
 
 
 class LikeButton extends React.Component {
+
     constructor(props) {
         super(props);
         console.log(this.props.param)
         this.state = {
             year: this.props.param["year"],
             monthday: this.props.param["monthday"],
-            hourminute: this.props.param["hourminute"]
+            hourminute: this.props.param["hourminute"],
+            viewerArray: [],
+            imageryLayers: ""
         };
         this.input_year_data = [2020, 2019, 2018]
         this.input_monthday_data = [1124, 1123, 1126]
         this.input_hourminute_data = [1200, 1300, 1400]
+
+        this.custom_render_loop = this.custom_render_loop.bind(this);
+        this.rend_flag = 0
+    
+
     }
 
     handleChange = (event) => {
-        const kind = eval(event.target.id)
-        this.setState({kind: event.target.value });
-        console.log(event.target.id)
+        const type = event.target.id
+        console.log(event.target.value)
+        const val = Number(event.target.value)
+        if (type == "year") {
+            this.setState({ year: val });
+        } else if (type == "monthday") {
+            this.setState({ monthday: val });
+        } else {
+            this.setState({ hourminute: val });
+        }
+    }
+
+
+    componentDidUpdate() {
+        const initialLongitude = 140;
+        const initialLatitude = 35;
+        const initialHeight = 6500000;
+        console.log(this.state.hourminute)
+        console.log("Did update !")
+
+
         const Dom_param_dic = {
             year: this.state.year,
             monthday: this.state.monthday,
             hourminute: this.state.hourminute
         }
-        setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0)
+        console.log(Dom_param_dic)
+        setViewer(this.state.imageryLayers, this.state.viewerArray, Dom_param_dic, _propertyArray, 0)
+
+        for (let i = 0; i < viewerIdArray.length; i++) {
+            this.state.viewerArray[i].scene.requestRender();
+        };
+
+        this.rend_flag = 0
+        this.custom_render_loop()
+
     }
+
+
+    custom_render_loop(){
+        for (let i = 0; i < viewerIdArray.length; i++) {
+            this.state.viewerArray[i].scene.requestRender();
+        }
+
+        if (this.rend_flag == 50){
+            return
+        }else{
+            this.rend_flag =this.rend_flag + 1
+            window.requestAnimationFrame(this.custom_render_loop);
+        }
+    }
+
+    componentDidMount() {
+        console.log("didmount")
+        let viewerArray = []
+        viewerIdArray.forEach(viewerId => {
+            console.log(viewerId)
+            const viewer = new Cesium.Viewer(viewerId, {
+                requestRenderMode: true,
+                maximumRenderTimeChange: 10,
+                useDefaultRenderLoop: true
+            })
+            viewerArray.push(viewer);
+        })
+        let imageryLayers = viewerArray[0].imageryLayers
+        this.setState({
+            viewerArray: viewerArray,
+            imageryLayers: imageryLayers
+        });
+
+    }
+
 
     render() {
 
@@ -89,21 +168,11 @@ class LikeButton extends React.Component {
     }
 }
 
-//async function init() {
-//const { Dom_param_dic, OptionDic } = await init_datetime(s3)
-const Dom_param_dic = {year:2020,monthday:1124,hourminute:1200}
 
-const domContainer = document.querySelector('#like_button_container');
+const Dom_param_dic = { year: 2020, monthday: 1124, hourminute: 1200 }
+const domContainer = document.getElementById('root');
 const figure = <LikeButton param={Dom_param_dic} />
 ReactDOM.render(figure, domContainer);
 
 
-let viewerArray = []
-viewerIdArray.forEach(viewerId => {
-    console.log(viewerId)
-    let viewer = new Cesium.Viewer(viewerId)
-    viewerArray.push(viewer);
-})
 
-imageryLayers = viewerArray[0].imageryLayers
-setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0)

@@ -26,6 +26,15 @@ function create_option(input_data) {
     return list;
 }
 
+function renderLoop(viewerArray) {
+    for (var i = 0; i < viewerIdArray.length; i++) {
+        viewerArray[i].resize();
+        viewerArray[i].render();
+        viewerArray[i].scene.requestRender();
+    };
+    window.setTimeout(renderLoop(viewerArray), 200);
+}
+
 var _com = new constance();
 var region = _com.region;
 var endpoint = _com.endpoint;
@@ -45,30 +54,95 @@ var LikeButton = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (LikeButton.__proto__ || Object.getPrototypeOf(LikeButton)).call(this, props));
 
         _this.handleChange = function (event) {
-            var kind = eval(event.target.id);
-            _this.setState({ kind: event.target.value });
-            console.log(event.target.id);
-            var Dom_param_dic = {
-                year: _this.state.year,
-                monthday: _this.state.monthday,
-                hourminute: _this.state.hourminute
-            };
-            setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0);
+            var type = event.target.id;
+            console.log(event.target.value);
+            var val = Number(event.target.value);
+            if (type == "year") {
+                _this.setState({ year: val });
+            } else if (type == "monthday") {
+                _this.setState({ monthday: val });
+            } else {
+                _this.setState({ hourminute: val });
+            }
         };
 
         console.log(_this.props.param);
         _this.state = {
             year: _this.props.param["year"],
             monthday: _this.props.param["monthday"],
-            hourminute: _this.props.param["hourminute"]
+            hourminute: _this.props.param["hourminute"],
+            viewerArray: [],
+            imageryLayers: ""
         };
         _this.input_year_data = [2020, 2019, 2018];
         _this.input_monthday_data = [1124, 1123, 1126];
         _this.input_hourminute_data = [1200, 1300, 1400];
+
+        _this.custom_render_loop = _this.custom_render_loop.bind(_this);
+        _this.rend_flag = 0;
+
         return _this;
     }
 
     _createClass(LikeButton, [{
+        key: "componentDidUpdate",
+        value: function componentDidUpdate() {
+            var initialLongitude = 140;
+            var initialLatitude = 35;
+            var initialHeight = 6500000;
+            console.log(this.state.hourminute);
+            console.log("Did update !");
+
+            var Dom_param_dic = {
+                year: this.state.year,
+                monthday: this.state.monthday,
+                hourminute: this.state.hourminute
+            };
+            console.log(Dom_param_dic);
+            setViewer(this.state.imageryLayers, this.state.viewerArray, Dom_param_dic, _propertyArray, 0);
+
+            for (var i = 0; i < viewerIdArray.length; i++) {
+                this.state.viewerArray[i].scene.requestRender();
+            };
+
+            this.rend_flag = 0;
+            this.custom_render_loop();
+        }
+    }, {
+        key: "custom_render_loop",
+        value: function custom_render_loop() {
+            for (var i = 0; i < viewerIdArray.length; i++) {
+                this.state.viewerArray[i].scene.requestRender();
+            }
+
+            if (this.rend_flag == 50) {
+                return;
+            } else {
+                this.rend_flag = this.rend_flag + 1;
+                window.requestAnimationFrame(this.custom_render_loop);
+            }
+        }
+    }, {
+        key: "componentDidMount",
+        value: function componentDidMount() {
+            console.log("didmount");
+            var viewerArray = [];
+            viewerIdArray.forEach(function (viewerId) {
+                console.log(viewerId);
+                var viewer = new Cesium.Viewer(viewerId, {
+                    requestRenderMode: true,
+                    maximumRenderTimeChange: 10,
+                    useDefaultRenderLoop: true
+                });
+                viewerArray.push(viewer);
+            });
+            var imageryLayers = viewerArray[0].imageryLayers;
+            this.setState({
+                viewerArray: viewerArray,
+                imageryLayers: imageryLayers
+            });
+        }
+    }, {
         key: "render",
         value: function render() {
 
@@ -114,22 +188,7 @@ var LikeButton = function (_React$Component) {
     return LikeButton;
 }(React.Component);
 
-//async function init() {
-//const { Dom_param_dic, OptionDic } = await init_datetime(s3)
-
-
 var Dom_param_dic = { year: 2020, monthday: 1124, hourminute: 1200 };
-
-var domContainer = document.querySelector('#like_button_container');
+var domContainer = document.getElementById('root');
 var figure = React.createElement(LikeButton, { param: Dom_param_dic });
 ReactDOM.render(figure, domContainer);
-
-var viewerArray = [];
-viewerIdArray.forEach(function (viewerId) {
-    console.log(viewerId);
-    var viewer = new Cesium.Viewer(viewerId);
-    viewerArray.push(viewer);
-});
-
-imageryLayers = viewerArray[0].imageryLayers;
-setViewer(imageryLayers, viewerArray, Dom_param_dic, _propertyArray, 0);

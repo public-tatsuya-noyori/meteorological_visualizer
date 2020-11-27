@@ -14,6 +14,7 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
         }
         
         viewerArray[i].entities.removeAll();
+        console.log("remove")
     };
     let aipViewerArray = [];
     _com.aipViewerNumArray.forEach(aipViewerNum => {
@@ -47,7 +48,7 @@ export function setViewer(imageryLayers, viewerArray, yearMonthdayHourminuteArra
             maxValueArray[viewerNum - 1] = Number(mx)
         }
     }
-    console.log(yearMonthdayHourminuteArray["hourminute"])
+    //console.log(yearMonthdayHourminuteArray["hourminute"])
 
     imageryLayers.addImageryProvider(new ArrowImageryProvider({
         maximumLevel: _com.maximumLevel,
