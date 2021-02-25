@@ -342,10 +342,10 @@ ArrowImageryProvider.prototype.requestImage = function (
 ) {
   for (let i = 0; i < this._urlPrefixArray.length; i++) {
     let propertyFileName = this._propertyArray[i].replace(/\[.*$/g, "").trim().replace(/ /g, "_");
-    fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".arrow"].join("")).then((pResponse) => {
+    fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", propertyFileName, ".feather"].join("")).then((pResponse) => {
       if (pResponse.ok) {
         Arrow.Table.from(pResponse).then((propertyTable) => {
-          fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".arrow"].join("")).then((lResponse) => {
+          fetch([this._urlPrefixArray[i], "/", this._year, "/", this._monthDay, "/", this._hourMinute, "/", level, "/", x, "/", y, "/", this._locationDatetimeFileName, ".feather"].join("")).then((lResponse) => {
             if (lResponse.ok) {
               Arrow.Table.from(lResponse).then((locationDatetimeTable) => {
                 if (this._drawArray[i] == 'point') {
