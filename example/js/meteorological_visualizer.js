@@ -59,7 +59,6 @@ function init() {
   const initialLongitude = 140;
   const initialLatitude = 35;
   const initialHeight = 6500000;
-  Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ODliN2Q1NS1hYTkwLTQxYWQtOTVjMy01NzFlMGRkZThhYmEiLCJpZCI6Mzc1MjUsImlhdCI6MTYwNTE2MjMxNn0.NJ33oqQu8VeX6Yh55y4TiOCtFe5Cxfk6UbddVUorHWo';
   viewerIdArray.forEach(viewerId => {
     let viewer = new Cesium.Viewer(viewerId, {
       animation: false,
