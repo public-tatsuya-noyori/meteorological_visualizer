@@ -29,7 +29,7 @@ function ArrowImageryProvider(options) {
   this._maximumLevel = Cesium.defaultValue(options.level, undefined);
   this._minimumLevel = Cesium.defaultValue(options.level, undefined);
   this._viewerArray = Cesium.defaultValue(options.viewerArray, undefined);
-  this._configTable = Cesium.defaultValue(options.configTable, undefined);
+  this._configPropertyTable = Cesium.defaultValue(options.configPropertyTable, undefined);
   this._datetimePath = Cesium.defaultValue(options.datetimePath, undefined);
   this._ft = Cesium.defaultValue(options.ft, undefined);
 
@@ -334,14 +334,14 @@ ArrowImageryProvider.prototype.requestImage = async function (
   if (level > this._maximumLevel || level < this._minimumLevel) {
     return document.createElement("canvas");
   }
-  let nameArray = this._configTable.getColumn('name').toArray();
-  let urlPrefixArray = this._configTable.getColumn('urlPrefix').toArray();
-  let urlSuffixArray = this._configTable.getColumn('urlSuffix').toArray();
-  let startValueArray = this._configTable.getColumn('startValue').toArray();
-  let valueWindowArray = this._configTable.getColumn('valueWindow').toArray();
-  let startHslHueArray = this._configTable.getColumn('startHslHue').toArray();
-  let hslHueWindowArray = this._configTable.getColumn('hslHueWindow').toArray();
-  let pixelSizeArray = this._configTable.getColumn('pixelSize').toArray();
+  let nameArray = this._configPropertyTable.getColumn('name').toArray();
+  let urlPrefixArray = this._configPropertyTable.getColumn('urlPrefix').toArray();
+  let urlSuffixArray = this._configPropertyTable.getColumn('urlSuffix').toArray();
+  let startValueArray = this._configPropertyTable.getColumn('startValue').toArray();
+  let valueWindowArray = this._configPropertyTable.getColumn('valueWindow').toArray();
+  let startHslHueArray = this._configPropertyTable.getColumn('startHslHue').toArray();
+  let hslHueWindowArray = this._configPropertyTable.getColumn('hslHueWindow').toArray();
+  let pixelSizeArray = this._configPropertyTable.getColumn('pixelSize').toArray();
   let locationDatetimeTable = await Arrow.Table.from(fetch([urlPrefixArray[0], '/', this._datetimePath, '/', level, '/', x, '/', y, '/location_datetime.arrow'].join('')));
   let latArray = locationDatetimeTable.getColumn('latitude [degree]').toArray();
   let lonArray = locationDatetimeTable.getColumn('longitude [degree]').toArray();

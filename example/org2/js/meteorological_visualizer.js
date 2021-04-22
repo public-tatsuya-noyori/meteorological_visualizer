@@ -7,7 +7,7 @@ function setViewer(){
   for (let i in viewerIdArray) {
     viewerArray[i].entities.removeAll();
   };
-  imageryLayers.addImageryProvider(new ArrowImageryProvider({level:level, viewerArray:viewerArray, configTable:configTable, datetimePath:'2021/0411/1800', ft:'0'}));
+  imageryLayers.addImageryProvider(new ArrowImageryProvider({level:level, viewerArray:viewerArray, configPropertyTable:configPropertyTable, datetimePath:'2021/0411/1800', ft:'0'}));
 }
 async function init(){
   let viewerOption = {animation:false, baseLayerPicker:false, fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, skyBox:false, skyAtmosphere:false, sceneMode:sceneMode, creditContainer:"c", requestRenderMode:false, useDefaultRenderLoop:true, targetFrameRate:1}
@@ -43,6 +43,6 @@ async function init(){
     });
   };
   imageryLayers = controleViewer.imageryLayers;
-  configTable = await Arrow.Table.from(fetch('/configProperty.arrow'));
+  configPropertyTable = await Arrow.Table.from(fetch(configPropertyTableUrl));
   setViewer();
 }
