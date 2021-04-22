@@ -7,21 +7,10 @@
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.80/Build/Cesium/Cesium.js"></script>
 <script type="module" src="./js/meteorological_visualizer.js"></script>
 <script>
-var sceneMode = Cesium.SceneMode.SCENE3D;
-var level = 0;
-var resolutionScale = 1;
-var minimumZoomDistance = 1000000;
-var maximumZoomDistance = 6500000;
-var percentageChanged = 0.001;
-var initialLongitude = 0;
-var initialLatitude = 0;
-var initialHeight = 6500000;
-var viewerArray = [];
-var viewerIdArray = ["viewer11", "viewer12", "viewer21", "viewer22"];
-var controleViewerId = "controleViewer"
-var imageryLayers = new Cesium.ImageryLayerCollection();
-var configPropertyTableUrl = '/configProperty.arrow'
-var configPropertyTable = Arrow.Table.new();
+const initialHeight = 6500000, initialLatitude = 0, initialLongitude = 0, level = 0;
+const configPropertyTableUrl = '/configProperty.arrow';
+const viewerIdArray = ["viewer11", "viewer12", "viewer21", "viewer22"];
+const controleViewerId = "controleViewer"
 </script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.80/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 <style>.v {height:360px;width:360px}</style>
