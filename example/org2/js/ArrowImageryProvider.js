@@ -33,6 +33,8 @@ function ArrowImageryProvider(options) {
   this._datetimePath = Cesium.defaultValue(options.datetimePath, undefined);
   this._ft = Cesium.defaultValue(options.ft, undefined);
 
+  this.contourGridFrameHash = {};
+
   /**propertyArray
    * The default alpha blending value of this provider, with 0.0 representing fully transparent and
    * 1.0 representing fully opaque.
@@ -334,45 +336,227 @@ ArrowImageryProvider.prototype.requestImage = async function (
   if (level > this._maximumLevel || level < this._minimumLevel) {
     return document.createElement("canvas");
   }
-  let nameArray = this._configPropertyTable.getColumn('name').toArray();
-  let urlPrefixArray = this._configPropertyTable.getColumn('urlPrefix').toArray();
-  let urlSuffixArray = this._configPropertyTable.getColumn('urlSuffix').toArray();
-  let startValueArray = this._configPropertyTable.getColumn('startValue').toArray();
-  let valueWindowArray = this._configPropertyTable.getColumn('valueWindow').toArray();
-  let startHslHueArray = this._configPropertyTable.getColumn('startHslHue').toArray();
-  let hslHueWindowArray = this._configPropertyTable.getColumn('hslHueWindow').toArray();
-  let pixelSizeArray = this._configPropertyTable.getColumn('pixelSize').toArray();
-  let locationDatetimeTable = await Arrow.Table.from(fetch([urlPrefixArray[0], '/', this._datetimePath, '/', level, '/', x, '/', y, '/location_datetime.arrow'].join('')));
-  let latArray = locationDatetimeTable.getColumn('latitude [degree]').toArray();
-  let lonArray = locationDatetimeTable.getColumn('longitude [degree]').toArray();
-  let points = Array(this._viewerArray.lengh);
-  for (let i in this._viewerArray) {
-    points[i] = this._viewerArray[i].scene.primitives.add(new Cesium.PointPrimitiveCollection());
-    let propertyTable = await Arrow.Table.from(fetch([urlPrefixArray[i], '/', this._datetimePath, '/', level, '/', x, '/', y, '/', this._ft, urlSuffixArray[i]].join('')));
-    let columnArray = propertyTable.getColumn(nameArray[i]).toArray();
-    let normalizedValue = 0.0;
-    for (let j in columnArray) {
-      if (valueWindowArray[i] > 0) {
-        if (columnArray[j] <= startValueArray[i]) {
-          normalizedValue = 0.0
-        } else if (columnArray[j] > startValueArray[i] + valueWindowArray[i]) {
-          normalizedValue = 1.0
+  for (let row of this._configPropertyTable) {
+    let viewerIndex = row.get('viewerIndex');
+    if (viewerIndex >= this._viewerArray.length) {
+      continue;
+    }
+    let name = row.get('name');
+    let urlPrefix = row.get('urlPrefix');
+    let locationDatetimeTable = await Arrow.Table.from(fetch([urlPrefix, '/', this._datetimePath, '/', level, '/', x, '/', y, '/location_datetime.arrow'].join('')));
+    let urlSuffix = row.get('urlSuffix');
+    let propertyTable = await Arrow.Table.from(fetch([urlPrefix, '/', this._datetimePath, '/', level, '/', x, '/', y, '/', this._ft, urlSuffix].join('')));
+    let draw = row.get('draw');
+    let thresholdStep = row.get('thresholdStep');
+    let numberOfStepForColor = row.get('numberOfStepForColor');
+    let startValueForColor = row.get('startValueForColor');
+    let rangeHslHue = d3.hsl(row.get('startColor')).h;
+    let hslHueAngle = row.get('hslHueAngle');
+    let size = row.get('size');
+    let colorScaleRangeArray = [];
+    let colorScaleDomainArray = [];
+    let hslHueStep = hslHueAngle / numberOfStepForColor;
+    d3.range(startValueForColor, numberOfStepForColor * thresholdStep + startValueForColor, thresholdStep).forEach(domainValue => {
+      colorScaleRangeArray.push(d3.hsl(rangeHslHue, 1.0, 0.5));
+      colorScaleDomainArray.push(domainValue);
+      rangeHslHue = rangeHslHue + hslHueStep;
+    });
+    let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
+    let latArray = locationDatetimeTable.getColumn('latitude [degree]').toArray();
+    let lonArray = locationDatetimeTable.getColumn('longitude [degree]').toArray();
+    let valueArray = propertyTable.getColumn(name).toArray();
+    if (draw == 'point') {
+      let drawCollection = this._viewerArray[viewerIndex].scene.primitives.add(new Cesium.PointPrimitiveCollection());
+      valueArray.forEach((value, i) => {
+        drawCollection.add({
+          color: Cesium.Color.fromCssColorString(d3.rgb(colorScale(value)).formatHex()),
+          pixelSize : size,
+          position : Cesium.Cartesian3.fromDegrees(lonArray[i], latArray[i])
+        });
+      });
+    } else if (draw == 'contour') {
+      let drawCollection = this._viewerArray[viewerIndex].scene.primitives.add(new Cesium.PolylineCollection());
+      let thresholdStart = row.get('thresholdStart');
+      let thresholdEnd = row.get('thresholdEnd');
+      let thresholdArray = d3.range(thresholdStart, thresholdEnd, thresholdStep);
+      let gridSize = row.get('gridSize');
+
+      //let cellSize = row.get('cellSize');
+
+      let propertyKeyPrefix = [urlPrefix, '/', this._datetimePath, '/', this._ft, urlSuffix].join('');
+      let propertyKey = [propertyKeyPrefix, '/', level, '/', x, '/', y].join('');
+      let frameLatArray = [], frameLonArray = [], frameValueArray = [];
+      d3.range(valueArray.length - (2 * gridSize), valueArray.length, 1).forEach(i => {
+        frameLatArray.push(latArray[i]);
+        frameLonArray.push(lonArray[i]);
+        frameValueArray.push(valueArray[i]);
+      });
+      let frameTI = {minLon: d3.min(frameLonArray), maxLon: d3.max(frameLonArray), minLat: d3.min(frameLatArray), maxLat: d3.max(frameLatArray), dataArray: d3.transpose([frameLonArray, frameLatArray, frameValueArray])}
+      this.contourGridFrameHash[propertyKey + '/T'] = frameTI;
+      frameLatArray = [], frameLonArray = [], frameValueArray = [];
+      d3.range(0, 2 * gridSize, 1).forEach(i => {
+        frameLatArray.push(latArray[i]);
+        frameLonArray.push(lonArray[i]);
+        frameValueArray.push(valueArray[i]);
+      });
+      let frameBI = {minLon: d3.min(frameLonArray), maxLon: d3.max(frameLonArray), minLat: d3.min(frameLatArray), maxLat: d3.max(frameLatArray), dataArray: d3.transpose([frameLonArray, frameLatArray, frameValueArray])}
+      this.contourGridFrameHash[propertyKey + '/B'] = frameBI;
+      frameLatArray = [], frameLonArray = [], frameValueArray = [];
+      d3.merge([d3.range(gridSize - 2, valueArray.length, gridSize), d3.range(gridSize - 1, valueArray.length, gridSize)]).forEach(i => {
+        frameLatArray.push(latArray[i]);
+        frameLonArray.push(lonArray[i]);
+        frameValueArray.push(valueArray[i]);
+      });
+      let frameRI = {minLon: d3.min(frameLonArray), maxLon: d3.max(frameLonArray), minLat: d3.min(frameLatArray), maxLat: d3.max(frameLatArray), dataArray: d3.transpose([frameLonArray, frameLatArray, frameValueArray])}
+      this.contourGridFrameHash[propertyKey + '/R'] = frameRI;
+      frameLatArray = [], frameLonArray = [], frameValueArray = [];
+      d3.merge([d3.range(0, valueArray.length, gridSize), d3.range(1, valueArray.length, gridSize)]).forEach(i => {
+        frameLatArray.push(latArray[i]);
+        if (x == 0) {
+          frameLonArray.push(lonArray[i] + 360.0);
         } else {
-          normalizedValue = (columnArray[j] - startValueArray[i]) / valueWindowArray[i]
+          frameLonArray.push(lonArray[i]);
+        }
+        frameValueArray.push(valueArray[i]);
+      });
+      let frameLI = {minLon: d3.min(frameLonArray), maxLon: d3.max(frameLonArray), minLat: d3.min(frameLatArray), maxLat: d3.max(frameLatArray), dataArray: d3.transpose([frameLonArray, frameLatArray, frameValueArray])}
+      this.contourGridFrameHash[propertyKey + '/L'] = frameLI
+      let frameRE, frameLE, frameBE, frameTE, frameKey;
+      if (x == 0) {
+        frameKey = [propertyKeyPrefix, '/', level, '/', 1, '/', y, '/L'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameRE = this.contourGridFrameHash[frameKey];
+        }
+        frameKey = [propertyKeyPrefix, '/', level, '/', 2**(level + 1) - 1, '/', y, '/R'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameLE = this.contourGridFrameHash[frameKey];
+        }
+      } else if (x == 2**(level + 1) - 1) {
+        frameKey = [propertyKeyPrefix, '/', level, '/', 0, '/', y, '/L'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameRE = this.contourGridFrameHash[frameKey];
+        }
+        frameKey = [propertyKeyPrefix, '/', level, '/', x - 1, '/', y, '/R'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameLE = this.contourGridFrameHash[frameKey];
         }
       } else {
-        if (columnArray[j] >= startValueArray[i]) {
-          normalizedValue = 0.0
-        } else if (columnArray[j] < startValueArray[i] + valueWindowArray[i]) {
-          normalizedValue = 1.0
-        } else {
-          normalizedValue = (columnArray[j] - startValueArray[i]) / valueWindowArray[i]
+        frameKey = [propertyKeyPrefix, '/', level, '/', x + 1, '/', y, '/L'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameRE = this.contourGridFrameHash[frameKey];
+        }
+        frameKey = [propertyKeyPrefix, '/', level, '/', x - 1, '/', y, '/R'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameLE = this.contourGridFrameHash[frameKey];
         }
       }
-      points[i].add({
-        color : Cesium.Color.fromHsl(normalizedValue * hslHueWindowArray[i] + startHslHueArray[i], 1.0, 0.5, 1.0),
-        pixelSize : pixelSizeArray[i],
-        position : Cesium.Cartesian3.fromDegrees(lonArray[j], latArray[j])
+      if (y == 0) {
+        frameKey = [propertyKeyPrefix, '/', level, '/', x, '/', 1, '/T'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameBE = this.contourGridFrameHash[frameKey];
+        }
+      } else if (y == 2**level - 1) {
+        frameKey = [propertyKeyPrefix, '/', level, '/', x, '/', y - 1, '/B'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameTE = this.contourGridFrameHash[frameKey];
+        }
+      } else{
+        frameKey = [propertyKeyPrefix, '/', level, '/', x, '/', y + 1, '/T'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameBE = this.contourGridFrameHash[frameKey];
+        }
+        frameKey = [propertyKeyPrefix, '/', level, '/', x, '/', y - 1, '/B'].join('');
+        if (frameKey in this.contourGridFrameHash) {
+          frameTE = this.contourGridFrameHash[frameKey];
+        }
+      }
+      let contoursArray = [];
+
+      let dataArray = d3.transpose([lonArray, latArray, valueArray]);
+      let contours = d3.tricontour().thresholds(thresholdArray)(dataArray);
+      contours.minLon = d3.min(lonArray);
+      contours.maxLon = d3.max(lonArray);
+      contours.minLat = d3.min(latArray);
+      contours.maxLat = d3.max(latArray);
+      //let contours = d3.contours().thresholds(thresholdArray).size([gridSize, valueArray.length / gridSize])(valueArray);
+
+      contoursArray.push(contours);
+      if (frameTE) {
+        contours = d3.tricontour().thresholds(thresholdArray)(d3.merge([frameTI.dataArray, frameTE.dataArray]));
+        contours.minLon = d3.min([frameTI.minLon, frameTE.minLon]);
+        contours.maxLon = d3.max([frameTI.maxLon, frameTE.maxLon]);
+        contours.minLat = d3.min([frameTI.minLat, frameTE.minLat]);
+        contours.maxLat = d3.max([frameTI.maxLat, frameTE.maxLat]);
+        contoursArray.push(contours);
+      }
+      if (frameBE) {
+        contours = d3.tricontour().thresholds(thresholdArray)(d3.merge([frameBI.dataArray, frameBE.dataArray]));
+        contours.minLon = d3.min([frameBI.minLon, frameBE.minLon]);
+        contours.maxLon = d3.max([frameBI.maxLon, frameBE.maxLon]);
+        contours.minLat = d3.min([frameBI.minLat, frameBE.minLat]);
+        contours.maxLat = d3.max([frameBI.maxLat, frameBE.maxLat]);
+        contoursArray.push(contours);
+      }
+      if (frameLE) {
+        contours = d3.tricontour().thresholds(thresholdArray)(d3.merge([frameLI.dataArray, frameLE.dataArray]));
+        contours.minLon = d3.min([frameLI.minLon, frameLE.minLon]);
+        contours.maxLon = d3.max([frameLI.maxLon, frameLE.maxLon]);
+        contours.minLat = d3.min([frameLI.minLat, frameLE.minLat]);
+        contours.maxLat = d3.max([frameLI.maxLat, frameLE.maxLat]);
+        contoursArray.push(contours);
+      }
+      if (frameRE) {
+        contours = d3.tricontour().thresholds(thresholdArray)(d3.merge([frameRI.dataArray, frameRE.dataArray]));
+        contours.minLon = d3.min([frameRI.minLon, frameRE.minLon]);
+        contours.maxLon = d3.max([frameRI.maxLon, frameRE.maxLon]);
+        contours.minLat = d3.min([frameRI.minLat, frameRE.minLat]);
+        contours.maxLat = d3.max([frameRI.maxLat, frameRE.maxLat]);
+        contoursArray.push(contours);
+      }
+      contoursArray.forEach(contours => {
+        contours.forEach(contour => {
+          contour.coordinates.forEach(ringArray => {
+            ringArray.forEach(pointArray => {
+              let polylineArray = [], polyline = [], prePoint = [];
+              pointArray.forEach(point => {
+                if (prePoint.length > 0) {
+
+                  if ((prePoint[0] == contours.minLon && point[0] == contours.minLon) || (prePoint[0] == contours.maxLon && point[0] == contours.maxLon) || (prePoint[1] == contours.minLat && point[1] == contours.minLat) || (prePoint[1] == contours.maxLat && point[1] == contours.maxLat)) {
+                  //if ((prePoint[0] == 0 && point[0] == 0) || (prePoint[0] == gridSize && point[0] == gridSize) || (prePoint[1] == 0 && point[1] == 0) || (prePoint[1] == gridSize && point[1] == gridSize)) {
+
+                    if (polyline.length > 3) {
+                      polylineArray.push(polyline);
+                    }
+                    polyline = [];
+                  } else {
+
+                    polyline.push(point[0], point[1]);
+                    //polyline.push(x * 180.0 + point[0] * cellSize - 180.0, point[1] * cellSize - 90.0);
+
+                  }
+                } else {
+
+                  polyline.push(point[0], point[1]);
+                  //polyline.push(x * 180.0 + point[0] * cellSize - 180.0, point[1] * cellSize - 90.0);
+
+                }
+                prePoint = point;
+              });
+              if (polyline.length > 3) {
+                polylineArray.push(polyline);
+              }
+              if (polylineArray.length > 0) {
+                polylineArray.forEach(polyline => {
+                  drawCollection.add({
+                    positions : Cesium.Cartesian3.fromDegreesArray(polyline),
+                    width : 1,
+                    material: Cesium.Material.fromType('Color', {color: Cesium.Color.fromCssColorString(d3.rgb(colorScale(contour.value)).formatHex())})
+                  });
+                });
+              }
+            });
+          });
+        });
       });
     }
   }
