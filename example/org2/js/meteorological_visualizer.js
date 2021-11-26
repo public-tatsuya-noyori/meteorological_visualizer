@@ -12,9 +12,11 @@ function setViewer(){
   imageryLayers.addImageryProvider(new ArrowImageryProvider({level:level, viewerArray:viewerArray, configPropertyTable:configPropertyTable, datetimePath:'2021/0411/1800', ft:'0'}));
 }
 async function init(){
-  let sceneMode = Cesium.SceneMode.SCENE3D, maximumZoomDistance = 6500000, minimumZoomDistance = 1000000, percentageChanged = 0.001, resolutionScale = 1.0;
-  let viewerOption = {animation:false, baseLayerPicker:false, creditContainer:"c", fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, navigationHelpButton:false, requestRenderMode:false, sceneMode:sceneMode, sceneModePicker:false, selectionIndicator:false, shadow:false, skyAtmosphere:false, skyBox:false, targetFrameRate:1, timeline:false, useBrowserRecommendedResolution:true, useDefaultRenderLoop:true}
-  let controleViewer = new Cesium.Viewer(controleViewerId, viewerOption);
+  let viewerOption = {animation:false, baseLayerPicker:false, creditContainer:"c", fullscreenButton:false, geocoder:false, homeButton:false, infoBox:false, sceneModePicker:false, selectionIndicator:false, timeline:false, navigationHelpButton:false, navigationInstructionsInitiallyVisible:false, skyBox:false, skyAtmosphere:false, targetFrameRate:1, automaticallyTrackDataSourceClocks:false, sceneMode:sceneMode, orderIndependentTranslucency:false}
+  let controleViewerOption = viewerOption;
+  controleViewerOption.imageryProvider = false;
+  viewerOption.imageryProvider = viewerImageryProvider;
+  let controleViewer = new Cesium.Viewer(controleViewerId, controleViewerOption);
   controleViewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
   controleViewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
   controleViewer.camera.percentageChanged = percentageChanged;
