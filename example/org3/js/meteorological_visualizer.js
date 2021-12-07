@@ -8,6 +8,7 @@ var controleViewerOption = viewerOption;
 controleViewerOption.imageryProvider = false;
 viewerOption.imageryProvider = mapImageryProvider;
 var controleViewer = new Cesium.Viewer(controleViewerId, controleViewerOption);
+
 document.addEventListener('DOMContentLoaded',() => {
   initialize();
 });
@@ -100,7 +101,7 @@ async function getCategorySelectOptionsMap(path){
 }
 
 function setViewers(){
-  controleViewer.scene.mode = sceneMode
+  controleViewer.scene.mode = sceneMode;
   controleViewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
   controleViewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
   controleViewer.camera.percentageChanged = percentageChanged;
@@ -157,8 +158,45 @@ function setViewers(){
       let parentTrElem = document.getElementById(['viewerTr', trNumber].join(''));
       parentTrElem.appendChild(tdElem);
       let viewer = new Cesium.Viewer(['viewer', viewerIndex].join(''), viewerOption);
+      viewer.scene.mode = sceneMode;
+      viewer.scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
+      viewer.scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
+      viewer.camera.percentageChanged = percentageChanged;
+      viewer.resolutionScale = resolutionScale;
+      if (sceneMode == Cesium.SceneMode.SCENE3D) {
+        viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, initialLatitude, initialHeight)});
+      } else if (sceneMode == Cesium.SceneMode.SCENE2D){
+        viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, 0, initialHeight)});
+      } else {
+        viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(0, 0, initialHeight)});
+      }
+      viewer.camera.changed.addEventListener((viewerIndex) => {
+        viewers.forEach((tmpViewer, tmpViewerIndex) => {
+          if (tmpViewerIndex != viewerIndex) {
+            tmpViewer.camera.position = viewer.camera.position;
+            tmpViewer.camera.direction = viewer.camera.direction;
+            tmpViewer.camera.up = viewer.camera.up;
+            tmpViewer.camera.right = viewer.camera.right;
+            if (sceneMode == Cesium.SceneMode.SCENE2D && viewer.camera.positionCartographic.height != tmpViewer.camera.positionCartographic.height) {
+              tmpViewer.camera.setView({destination:Cesium.Cartesian3.fromRadians(viewer.camera.positionCartographic.longitude, viewer.camera.positionCartographic.latitude, viewer.camera.frustum.right - viewer.camera.frustum.left)});
+            }
+          }
+        });
+      });
       viewers.push(viewer);
     } else {
+      viewers[viewerIndex].scene.mode = sceneMode;
+      viewers[viewerIndex].scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
+      viewers[viewerIndex].scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
+      viewers[viewerIndex].camera.percentageChanged = percentageChanged;
+      viewers[viewerIndex].resolutionScale = resolutionScale;
+      if (sceneMode == Cesium.SceneMode.SCENE3D) {
+        viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, initialLatitude, initialHeight)});
+      } else if (sceneMode == Cesium.SceneMode.SCENE2D){
+        viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, 0, initialHeight)});
+      } else {
+        viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(0, 0, initialHeight)});
+      }  
       document.getElementById(['viewerheader', viewerIndex].join('')).textContent = configNames[viewerIndex];
       document.getElementById(['viewerheader', viewerIndex].join('')).style.visibility = 'visible';
       if (sceneMode == Cesium.SceneMode.SCENE3D) {
@@ -169,39 +207,7 @@ function setViewers(){
       document.getElementById(['viewer', viewerIndex].join('')).style.visibility = 'visible';
       document.getElementById(['viewerfooter', viewerIndex].join('')).style.visibility = 'visible';
     }
-    viewers[viewerIndex].scene.mode = sceneMode;
-    viewers[viewerIndex].scene.screenSpaceCameraController.maximumZoomDistance = maximumZoomDistance;
-    viewers[viewerIndex].scene.screenSpaceCameraController.minimumZoomDistance = minimumZoomDistance;
-    viewers[viewerIndex].camera.percentageChanged = percentageChanged;
-    viewers[viewerIndex].resolutionScale = resolutionScale;
-    if (sceneMode == Cesium.SceneMode.SCENE3D) {
-      viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, initialLatitude, initialHeight)});
-    } else if (sceneMode == Cesium.SceneMode.SCENE2D){
-      viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(initialLongitude, 0, initialHeight)});
-    } else {
-      viewers[viewerIndex].camera.setView({destination:Cesium.Cartesian3.fromDegrees(0, 0, initialHeight)});
-    }
   }
-  controleViewer.camera.changed.addEventListener(() => {
-    viewers.forEach((viewer, viewerIndex) => {
-      if (viewerIndex >= numberOfFormerViewer) {
-        viewer.camera.position = controleViewer.camera.position;
-        viewer.camera.direction = controleViewer.camera.direction;
-        viewer.camera.up = controleViewer.camera.up;
-        viewer.camera.right = controleViewer.camera.right;
-      }
-    });
-  });
-  viewers.forEach((viewer, viewerIndex) => {
-    viewer.camera.changed.addEventListener(() => {
-      if (viewerIndex >= numberOfFormerViewer) {
-        controleViewer.camera.position = viewer.camera.position;
-        controleViewer.camera.direction = viewer.camera.direction;
-        controleViewer.camera.up = viewer.camera.up;
-        controleViewer.camera.right = viewer.camera.right;
-      }
-    });
-  });
 }
 
 async function setDatetimeSelectors(selectedLevel){

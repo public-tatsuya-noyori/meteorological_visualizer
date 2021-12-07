@@ -17,7 +17,7 @@
 <script src='https://cdn.jsdelivr.net/npm/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script>
 <script type='module' src='./js/meteorological_visualizer.js'></script>
 <script>
-const percentageChanged = 0.001, resolutionScale = 1.0, controleViewerId = 'controleViewer';
+const percentageChanged = 0.01, resolutionScale = 1.0, controleViewerId = 'controleViewer';
 const mapImageryProvider = new Cesium.OpenStreetMapImageryProvider({url:'https://cyberjapandata.gsi.go.jp/xyz/std/'}), mapCopyRight = "地図の出典:<a href='https://maps.gsi.go.jp/development/ichiran.html'>国土地理院</a>";
 //const mapImageryProvider = new Cesium.OpenStreetMapImageryProvider({url:'https://cyberjapandata.gsi.go.jp/xyz/earthhillshade/'}), mapCopyRight = "地図の出典:<a href='https://maps.gsi.go.jp/development/ichiran.html'>国土地理院</a>";
 //const mapImageryProvider = new Cesium.OpenStreetMapImageryProvider({url:'https://tile.openstreetmap.org/'}), mapCopyRight = 'Base map:© OpenStreetMap contributors';
