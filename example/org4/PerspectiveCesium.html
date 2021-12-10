@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>meteorological visualizer</title>
+<link href='https://unpkg.com/cesium@1.87.1/Build/Cesium/Widgets/widgets.css' rel='stylesheet'>
+<link href='https://cdn.jsdelivr.net/npm/cesium@1.87.1/Build/Cesium/Widgets/widgets.css' rel='stylesheet'>
+<link href='https://unpkg.com/@finos/perspective-viewer@1.0.5/dist/umd/material-dense.css' rel='stylesheet'/>
+<link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@1.0.5/dist/umd/material-dense.css' rel='stylesheet'/>
+<script src='https://unpkg.com/cesium@1.87.1/Build/Cesium/Cesium.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/cesium@1.87.1/Build/Cesium/Cesium.js'></script>
+<script src='https://unpkg.com/d3@7.1.1/dist/d3.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/d3@7.1.1/dist/d3.min.js'></script>
+<script src='https://unpkg.com/d3-tricontour@1.0.2/dist/d3-tricontour.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/d3-tricontour@1.0.2/dist/d3-tricontour.min.js'></script>
+<script src="https://unpkg.com/@finos/perspective@1.0.5/dist/umd/perspective.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/@finos/perspective@1.0.5/dist/umd/perspective.js'></script>
+<script src="https://unpkg.com/@finos/perspective-viewer@1.0.5/dist/umd/perspective-viewer.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@1.0.5/dist/umd/perspective-viewer.js'></script>
+
+<script src="https://unpkg.com/@finos/perspective-viewer-datagrid@1.0.5/dist/umd/perspective-viewer-datagrid.js"></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@1.0.5/dist/umd/perspective-viewer-datagrid.js'></script> -->
+<script src="https://unpkg.com/@finos/perspective-viewer-d3fc@1.0.5/dist/umd/perspective-viewer-d3fc.js"></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@1.0.5/dist/umd/perspective-viewer-d3fc.js'></script> -->
+
+<script src='https://unpkg.com/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script>
+<script type='module' src='./js/PerspectiveCesium.js'></script>
+<script>
+const percentageChanged = 0.01, resolutionScale = 1.0, cesiumControleViewerId = 'cesiumControleViewer';
+const coastLineGeoJsonPath = 'js/ne_110m_coastline.json', mapImageryProvider = false, mapCopyRight = '';
+//const coastLineGeoJsonPath = 'js/ne_110m_coastline.json', mapImageryProvider = new Cesium.UrlTemplateImageryProvider({url:'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'}), mapCopyRight = "地図の出典:<a href='https://maps.gsi.go.jp/development/ichiran.html'>国土地理院</a>";
+//const coastLineGeoJsonPath = 'js/ne_110m_coastline.json', mapImageryProvider = new Cesium.OpenStreetMapImageryProvider({url:'https://tile.openstreetmap.org/'}), mapCopyRight = 'Base map:© OpenStreetMap contributors';
+const sceneMode2D = Cesium.SceneMode.SCENE2D, initialHeight2D = 40400000, maximumZoomDistance2D = 40400000, minimumZoomDistance2D = 5000000;
+const sceneMode2p5D = Cesium.SceneMode.COLUMBUS_VIEW, initialHeight2p5D = 40400000, maximumZoomDistance2p5D = 40400000, minimumZoomDistance2p5D = 5000000;
+const sceneMode3D = Cesium.SceneMode.SCENE3D, initialHeight3D = 6500000, maximumZoomDistance3D = 6500000, minimumZoomDistance3D = 3500000;
+const endpoint = 'http://202.32.195.138:9000/', bucket = 'aa-open-dataset', datasetRootPath = '1MinuteDataset/', urlSuffix = 'all.arrow';
+const initialLatitude = 36, initialLongitude = 140;
+const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: true});
+const numberOfCesiumViewersTableTd = 2;
+let sceneMode = sceneMode2D, initialHeight = initialHeight2D, maximumZoomDistance = maximumZoomDistance2D, minimumZoomDistance = minimumZoomDistance2D;
+let datasetCategoryPathConfigColumnsMap = new Map([]);
+let categoryPath, name, draw, thresholdStart, thresholdEnd, numberOfStepForColor, startColor, hslHueAngle, size, configTable;
+
+categoryPath = 'bufr_to_arrow/ocean/float/';
+name = ['water pressure [Pa]'];
+draw = ['point'];
+thresholdStart = [0.0];
+thresholdEnd = [20000000.0];
+thresholdStep = [1000000.0];
+numberOfStepForColor = [20];
+startValueForColor = [0.0];
+startColor = ['blue'];
+hslHueAngle = [-300];
+size = [4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/surface/buoy/';
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [30, 40, 40, 30, 36];
+startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/surface/gps_pwv/';
+name = ['atmospheric path delay in satellite signal [m]'];
+draw = ['point'];
+thresholdStart = [1.0];
+thresholdEnd = [3.0];
+thresholdStep = [0.05];
+numberOfStepForColor = [40];
+startValueForColor = [1.0];
+startColor = ['blue'];
+hslHueAngle = [-300];
+size = [4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/surface/ship/';
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [30, 40, 40, 30, 36];
+startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/surface/synop/';
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [30, 40, 40, 30, 36];
+startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/upper_air/aircraft/';
+name = ['flight level [m]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [0.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [10000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [40, 40, 40, 30, 36];
+startValueForColor = [400.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/upper_air/profiler/';
+name = ['height [m]', 'virtual temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [0.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [10000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [40, 40, 40, 30, 36];
+startValueForColor = [400.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+categoryPath = 'bufr_to_arrow/upper_air/sonde/';
+name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+draw = ['point', 'point', 'point', 'point', 'point'];
+thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [30, 40, 40, 30, 36];
+startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+size = [4, 4, 4, 4, 4];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, draw:draw, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle, size:size});
+
+</script>
+<style>
+.table {width:100%;}
+.tr {display:table;}
+.td {display:table-cell;}
+.cesiumViewerHeader {width:360px;padding:1px;}
+.cesiumViewerBig {height:360px;width:360px;padding:1px;}
+.cesiumViewerSmall {height:180px;width:360px;padding:1px;}
+.cesiumViewerFooter {width:360px;padding:1px;}
+perspective-viewer {position:absolute;top:36px;left:0;right:0;bottom:0;visibility:hidden}
+</style>
+</head>
+<body>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='mode'><option>map(2D)</option><option>map(2.5D)</option><option>map(3D)</option><option>table</option></select></div>
+<div claas='table' id='cesiumViewers'></div>
+<div style='visibility:hidden' id='cesiumControleViewer'></div>
+<div style='visibility:hidden' id='c'></div>
+<div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
+</body>
+</html>
