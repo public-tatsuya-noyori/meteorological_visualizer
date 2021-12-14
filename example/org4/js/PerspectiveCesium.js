@@ -1,6 +1,6 @@
 import PerspectiveImageryProvider from './PerspectiveImageryProvider.js';
 const perspectiveWorker = perspective.worker();
-let categorySelectOptionsMap = new Map([]), categorySelectedTextMap = new Map([]), maxCategoryLevel = 2, isCategorySet = false;
+let categorySelectOptionsMap = new Map([]), categorySelectedTextMap = new Map([]), maxCategoryLevel = 3, isCategorySet = false;
 let datetimeSelectOptionsMap = new Map([]), datetimeSelectedTextMap = new Map([]), maxDatetimeLevel = 2, isDatetimeSet = false;
 let datasetCategoryPath = '', datasetPath = '', tileLevel = 0;
 let cesiumViewers = [];

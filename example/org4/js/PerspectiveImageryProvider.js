@@ -337,7 +337,7 @@ PerspectiveImageryProvider.prototype.requestImage = async function (
   if (level > this._maximumLevel || level < this._minimumLevel) {
     return document.createElement("canvas");
   }
-  let response = await fetch([this._urlPrefix, this._datasetPath, level, '/', x, '/', y, '/', this._urlSuffix].join(''));
+  let response = await fetch([this._urlPrefix, this._datasetPath, level, '/', x, '/', y, this._urlSuffix].join(''));
   if (!response.ok) {
     return document.createElement("canvas");
   }
