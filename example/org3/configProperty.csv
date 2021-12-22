@@ -1,5 +1,0 @@
-viewerIndex,name,urlPrefix,urlSuffix,draw,thresholdStart,thresholdEnd,thresholdStep,numberOfStepForColor,startValueForColor,startColor,hslHueAngle,size,gridSize,cellSize
-0,0/mean sea level/pressure reduced to mean sea level [Pa],/out/grib_to_arrow/gsm/0.25_0.25_90.0_0.0_-90.0_359.75,_mean_sea_level_pressure_reduced_to_mean_sea_level.arrow,point,120000.0,80000.0,-400.0,30.0,104000.0,blue,-300.0,1,720,0.25
-1,0/mean sea level/pressure reduced to mean sea level [Pa],/out/grib_to_arrow/gsm/0.25_0.25_90.0_0.0_-90.0_359.75,_mean_sea_level_pressure_reduced_to_mean_sea_level.arrow,contour,120000.0,80000.0,-400.0,30.0,104000.0,blue,-300.0,1,720,0.25
-2,0/mean sea level/pressure reduced to mean sea level [Pa],/out/grib_to_arrow/gsm/0.25_0.25_90.0_0.0_-90.0_359.75,_mean_sea_level_pressure_reduced_to_mean_sea_level.arrow,point,120000.0,80000.0,-400.0,30.0,104000.0,blue,-300.0,1,720,0.25
-3,0/mean sea level/pressure reduced to mean sea level [Pa],/out/grib_to_arrow/gsm/0.25_0.25_90.0_0.0_-90.0_359.75,_mean_sea_level_pressure_reduced_to_mean_sea_level.arrow,contour,120000.0,80000.0,-400.0,30.0,104000.0,blue,-300.0,1,720,0.25
