@@ -33,8 +33,8 @@ let datasetCategoryPathConfigColumnsMap = new Map([]);
 let categoryPath, name, height, thresholdStart, thresholdEnd, numberOfStepForColor, startColor, hslHueAngle, configTable;
 
 categoryPath = 'bufr_to_arrow/ocean/float/all/';
-name = ['water pressure [Pa]'];
 height = ['water pressure [Pa]'];
+name = ['water pressure [Pa]'];
 thresholdStart = [0.0];
 thresholdEnd = [20000000.0];
 thresholdStep = [1000000.0];
@@ -45,8 +45,8 @@ hslHueAngle = [-300];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/surface/buoy/all/';
-name = ['pressure reduced to mean sea level [Pa]', 'oceanographic water temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = [];
+name = ['pressure reduced to mean sea level [Pa]', 'oceanographic water temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [120000.0, 253.15, 0.0, 0.0];
 thresholdEnd = [80000.0, 313.15, 30.0, 360.0];
 thresholdStep = [-400.0, 1.0, 1.0, 10.0];
@@ -57,8 +57,8 @@ hslHueAngle = [-300, -300, -300, -360];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/surface/gps_station/all/';
-name = ['atmospheric path delay in satellite signal [m]'];
 height = ['height of station [m]'];
+name = ['atmospheric path delay in satellite signal [m]'];
 thresholdStart = [1.0];
 thresholdEnd = [3.0];
 thresholdStep = [0.05];
@@ -69,8 +69,8 @@ hslHueAngle = [-300];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/surface/ship/all/';
-name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = [];
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
 thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
 thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
@@ -81,8 +81,8 @@ hslHueAngle = [-300, -300, -300, -300, -360];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/surface/weather_station/all/';
-name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = ['height of station [m]'];
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
 thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
 thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
@@ -93,8 +93,8 @@ hslHueAngle = [-300, -300, -300, -300, -360];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/upper_air/aircraft/all/';
-name = ['flight level [m]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = ['flight level [m]' , 'height [m]'];
+name = ['flight level [m]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [0.0, 253.15, 253.15, 0.0, 0.0];
 thresholdEnd = [10000.0, 313.15, 313.15, 30.0, 360.0];
 thresholdStep = [400.0, 1.0, 1.0, 1.0, 10.0];
@@ -105,8 +105,8 @@ hslHueAngle = [-300, -300, -300, -300, -360];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/upper_air/profiler/all/';
-name = ['height [m]', 'virtual temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = ['height [m]'];
+name = ['height [m]', 'virtual temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [0.0, 253.15, 253.15, 0.0, 0.0];
 thresholdEnd = [10000.0, 313.15, 313.15, 30.0, 360.0];
 thresholdStep = [400.0, 1.0, 1.0, 1.0, 10.0];
@@ -117,8 +117,20 @@ hslHueAngle = [-300, -300, -300, -300, -360];
 datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
 
 categoryPath = 'bufr_to_arrow/upper_air/sonde/all/';
-name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 height = ['geopotential height [m]'];
+name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
+thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
+thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
+thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
+numberOfStepForColor = [30, 40, 40, 30, 36];
+startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
+startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
+hslHueAngle = [-300, -300, -300, -300, -360];
+datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:name, height:height, thresholdStart:thresholdStart, thresholdEnd:thresholdEnd, thresholdStep:thresholdStep, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+
+categoryPath = 'bufr_to_arrow/upper_air/drop_sonde/all/';
+height = ['geopotential height [m]'];
+name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
 thresholdStart = [120000.0, 253.15, 253.15, 0.0, 0.0];
 thresholdEnd = [80000.0, 313.15, 313.15, 30.0, 360.0];
 thresholdStep = [-400.0, 1.0, 1.0, 1.0, 10.0];
