@@ -404,11 +404,15 @@ async function setLayers(){
 //    if (perspectiveViewerConfig != undefined && perspectiveViewerConfig.filter.length > 0) {
 //      perspectiveTableColumns = await (await perspectiveTable.view({filter:perspectiveViewerConfig.filter})).to_columns();
 //    } else {
-    let perspectiveTableColumns = await (await perspectiveTable.view()).to_columns();
+//    let perspectiveTableColumns = await ().to_columns();
 //    }
+    let perspectiveTableView = await perspectiveTable.view();
+    let perspectiveTableColumns = await perspectiveTableView.to_columns();
     for (let [deckglViewerIndex, name] of configColumns['name'].entries()) {
-      let thresholdStart = configColumns['thresholdStart'][deckglViewerIndex];
-      let thresholdEnd = configColumns['thresholdEnd'][deckglViewerIndex];
+      let perspectiveTableViewMinMax = [];
+      if (name in perspectiveTableColumns) {
+        perspectiveTableViewMinMax = await perspectiveTableView.get_min_max(name);
+      }
       let thresholdStep = configColumns['thresholdStep'][deckglViewerIndex];
       let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
       let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
@@ -484,10 +488,10 @@ async function setLayers(){
               if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
                 return 0;
               } else {
-                if ((thresholdStep > 0 && data.src[name][index] - thresholdStart <= 0) || (thresholdStep < 0 && data.src[name][index] - thresholdStart >= 0)) {
+                if ((thresholdStep > 0 && data.src[name][index] - startValueForColor <= 0) || (thresholdStep < 0 && data.src[name][index] - startValueForColor >= 0)) {
                   return 1;
                 }
-                let colorRangeIndex = Math.floor((data.src[name][index] - thresholdStart +  thresholdStep) / thresholdStep);
+                let colorRangeIndex = Math.floor((data.src[name][index] - startValueForColor +  thresholdStep) / thresholdStep);
                 if (colorRangeIndex >= colorScaleDomainArray.length) {
 //                  return colorScaleDomainArray.length + 1;
                   return 1
@@ -517,7 +521,7 @@ async function setLayers(){
               if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
                 return 0
               } else {
-                return Math.floor((data.src[name][index] - thresholdStart) / thresholdStep);
+                return Math.floor((data.src[name][index] - startValueForColor) / thresholdStep);
               }
             } else {
               return 0;
@@ -548,31 +552,31 @@ async function setLayers(){
           },
           aggregation: 'SUM'
         });
-      } else if (layerType == 'Contour' && perspectiveTableColumns[name] != undefined) {
-        let dataArray = d3.transpose([perspectiveTableColumns['longitude [degree]'], perspectiveTableColumns['latitude [degree]'], perspectiveTableColumns[name]]);
-        let thresholdArray = d3.range(thresholdStart, thresholdEnd, thresholdStep);
-        let contours = d3.tricontour().thresholds(thresholdArray)(dataArray);
-        let data = [];
-        contours.forEach(contour => {
-          let rgb = d3.rgb(colorScale(contour.value));
-          contour.coordinates.forEach(rings => {
-            rings.forEach(contour => {
-              data.push({contour:contour, color:[rgb.r,rgb.g,rgb.b]});
-            });
-          });
-        });
-        layer = new deck.PolygonLayer({
-          data: data,
-          stroked: true,
-          filled: true,
-          wireframe: true,
-          lineWidthMinPixels: 1,
-          getPolygon: d => d.contour,
-          getElevation: 0,
-          getFillColor: d => d.color,
-          getLineColor: [80, 80, 80],
-          getLineWidth: 1
-        });
+//      } else if (layerType == 'Contour' && perspectiveTableColumns[name] != undefined) {
+//        let dataArray = d3.transpose([perspectiveTableColumns['longitude [degree]'], perspectiveTableColumns['latitude [degree]'], perspectiveTableColumns[name]]);
+//        let thresholdArray = d3.range(thresholdStart, thresholdEnd, thresholdStep);
+//        let contours = d3.tricontour().thresholds(thresholdArray)(dataArray);
+//        let data = [];
+//        contours.forEach(contour => {
+//          let rgb = d3.rgb(colorScale(contour.value));
+//          contour.coordinates.forEach(rings => {
+//            rings.forEach(contour => {
+//              data.push({contour:contour, color:[rgb.r,rgb.g,rgb.b]});
+//            });
+//          });
+//        });
+//        layer = new deck.PolygonLayer({
+//          data: data,
+//          stroked: true,
+//          filled: true,
+//          wireframe: true,
+//          lineWidthMinPixels: 1,
+//          getPolygon: d => d.contour,
+//          getElevation: 0,
+//          getFillColor: d => d.color,
+//          getLineColor: [80, 80, 80],
+//          getLineWidth: 1
+//        });
       }
       if (layer == undefined) {
         deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone()]});
