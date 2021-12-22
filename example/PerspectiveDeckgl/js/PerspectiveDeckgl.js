@@ -3,6 +3,7 @@ let categorySelectedTextMap = new Map([]), maxCategoryLevel = 3;
 let datetimeSelectedTextMap = new Map([]), maxDatetimeLevel = 2;
 let datasetCategoryPath = '', datasetPath = '';
 let deckglViewers = [];
+let deckglViewersViewState = undefined;
 let perspectiveViewerElem = document.getElementsByTagName("perspective-viewer")[0];
 let perspectiveViewerConfig = undefined;
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
@@ -123,6 +124,16 @@ async function setDeckglViewers(){
       document.getElementById(['deckglViewerFooter', deckglViewerIndex].join('')).style.visibility = 'hidden';
     }
   }
+  let deckglViewersInitialViewState = undefined;
+  if (deckglViewersViewState == undefined) {
+    if (viewerType == 'Globe') {
+      deckglViewersInitialViewState = globeViewInitialViewState;
+    } else {
+      deckglViewersInitialViewState = mapViewInitialViewState;
+    }
+  } else {
+    deckglViewersInitialViewState = deckglViewersViewState;
+  }
   for (let deckglViewerIndex = 0; deckglViewerIndex < numberOfConfigDeckglViewer; deckglViewerIndex++) {
     if (deckglViewerIndex >= numberOfDeckglViewer) {
       let trNumber = Math.floor(deckglViewerIndex / numberOfConfigDeckglViewersTableTd);
@@ -158,6 +169,7 @@ async function setDeckglViewers(){
       parentTrElem.appendChild(tdElem);
       let deckglViewer = new deck.DeckGL({container:['deckglViewer', deckglViewerIndex].join(''), controller:true, layers: [mapGeoJsonLayer.clone()],
         onViewStateChange: ({viewState}) => {
+          deckglViewersViewState = viewState;
           deckglViewers.forEach((tmpDeckglViewer, tmpDeckglViewerIndex) => {
             if (tmpDeckglViewerIndex != deckglViewerIndex) {
               deckglViewers[tmpDeckglViewerIndex].setProps({initialViewState:viewState});
@@ -165,20 +177,18 @@ async function setDeckglViewers(){
           });
         }
       });
+      deckglViewer.setProps({initialViewState:deckglViewersInitialViewState});
       if (viewerType == 'Globe') {
-        deckglViewer.setProps({initialViewState:globeViewInitialViewState});
         deckglViewer.setProps({views:new deck._GlobeView()});
       } else {
-        deckglViewer.setProps({initialViewState:mapViewInitialViewState});
         deckglViewer.setProps({views:new deck.MapView({repeat:true})});
       }
       deckglViewers.push(deckglViewer);
     } else {
+      deckglViewers[deckglViewerIndex].setProps({initialViewState:deckglViewersInitialViewState});
       if (viewerType == 'Globe') {
-        deckglViewers[deckglViewerIndex].setProps({initialViewState:globeViewInitialViewState});
         deckglViewers[deckglViewerIndex].setProps({views:new deck._GlobeView()});
       } else {
-        deckglViewers[deckglViewerIndex].setProps({initialViewState:mapViewInitialViewState});
         deckglViewers[deckglViewerIndex].setProps({views:new deck.MapView({repeat:true})});
       }
       document.getElementById(['deckglViewerHeader', deckglViewerIndex].join('')).textContent = configNames[deckglViewerIndex];
@@ -326,6 +336,9 @@ async function getTileYs(path){
 }
 
 async function clearLayers(){
+  deckglViewers.forEach(deckglViewer => {
+    deckglViewer.setProps({layers: [mapGeoJsonLayer.clone()]});
+  });
   if (perspectiveTable != undefined) {
     await perspectiveTable.clear();
     perspectiveTable = undefined;  
@@ -342,29 +355,35 @@ async function setLayers(){
   let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
   let tileDataTables = [];
   let tileDataTableColumnNames = [];
-  let createTableObject = {}
+  let createTableObject = {};
   for (let dataUrl of dataUrls) {
-    let response = await fetch([endpoint, bucket, '/', dataUrl].join(''));
-    if (!response.ok) {
-      continue
-    }
-    let tileDataTable = await perspectiveWorker.table(await response.arrayBuffer());
-    tileDataTables.push(tileDataTable);
-    let tileDataTableSchema = await tileDataTable.schema();
-    Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
-      if (!(tileDataTableColumnName in tileDataTableColumnNames)) {
-        tileDataTableColumnNames.push(tileDataTableColumnName);
-        if (tileDataTableSchema[tileDataTableColumnName] == 'string') {
-          createTableObject[tileDataTableColumnName] = [''];
-        } else if (tileDataTableSchema[tileDataTableColumnName] == 'integer') {
-          createTableObject[tileDataTableColumnName] = [0];
-        } else if (tileDataTableSchema[tileDataTableColumnName] == 'float') {
-          createTableObject[tileDataTableColumnName] = [0.0];
-        } else if (tileDataTableSchema[tileDataTableColumnName] == 'datetime') {
-          createTableObject[tileDataTableColumnName] = [new Date()];
-	      }
+    let dataUrlList = dataUrl.split('/');
+    if (configColumns['filter'].indexOf([dataUrlList[dataUrlList.length - 3], dataUrlList[dataUrlList.length - 2], dataUrlList[dataUrlList.length - 1]].join('/')) > -1) {
+      let response = await fetch([endpoint, bucket, '/', dataUrl].join(''));
+      if (!response.ok) {
+        continue
       }
-    });
+      let tileDataTable = await perspectiveWorker.table(await response.arrayBuffer());
+      tileDataTables.push(tileDataTable);
+      let tileDataTableSchema = await tileDataTable.schema();
+      Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
+        if (!(tileDataTableColumnName in tileDataTableColumnNames)) {
+          tileDataTableColumnNames.push(tileDataTableColumnName);
+          if (tileDataTableSchema[tileDataTableColumnName] == 'string') {
+            createTableObject[tileDataTableColumnName] = [''];
+          } else if (tileDataTableSchema[tileDataTableColumnName] == 'integer') {
+            createTableObject[tileDataTableColumnName] = [0];
+          } else if (tileDataTableSchema[tileDataTableColumnName] == 'float') {
+            createTableObject[tileDataTableColumnName] = [0.0];
+          } else if (tileDataTableSchema[tileDataTableColumnName] == 'datetime') {
+            createTableObject[tileDataTableColumnName] = [new Date()];
+          }
+        }
+      });
+    }
+  }
+  if (tileDataTables.length == 0) {
+    return;
   }
   perspectiveTable = await perspectiveWorker.table(createTableObject);
   await perspectiveTable.clear();
