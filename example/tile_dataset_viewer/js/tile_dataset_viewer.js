@@ -413,7 +413,7 @@ async function setLayers(){
       if (name in perspectiveTableColumns) {
         perspectiveTableViewMinMax = await perspectiveTableView.get_min_max(name);
       }
-      let thresholdStep = configColumns['thresholdStep'][deckglViewerIndex];
+      let stepValueForColor = configColumns['stepValueForColor'][deckglViewerIndex];
       let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
       let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
       let rangeHslHue = d3.hsl(configColumns['startColor'][deckglViewerIndex]).h;
@@ -421,7 +421,7 @@ async function setLayers(){
       let colorScaleRangeArray = [];
       let colorScaleDomainArray = [];
       let hslHueStep = hslHueAngle / numberOfStepForColor;
-      d3.range(startValueForColor, numberOfStepForColor * thresholdStep + startValueForColor, thresholdStep).forEach(domainValue => {
+      d3.range(startValueForColor, numberOfStepForColor * stepValueForColor + startValueForColor, stepValueForColor).forEach(domainValue => {
         colorScaleRangeArray.push(d3.hsl(rangeHslHue, 1.0, 0.5));
         colorScaleDomainArray.push(domainValue);
         rangeHslHue = rangeHslHue + hslHueStep;
@@ -488,10 +488,10 @@ async function setLayers(){
               if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
                 return 0;
               } else {
-                if ((thresholdStep > 0 && data.src[name][index] - startValueForColor <= 0) || (thresholdStep < 0 && data.src[name][index] - startValueForColor >= 0)) {
+                if ((stepValueForColor > 0 && data.src[name][index] - startValueForColor <= 0) || (stepValueForColor < 0 && data.src[name][index] - startValueForColor >= 0)) {
                   return 1;
                 }
-                let colorRangeIndex = Math.floor((data.src[name][index] - startValueForColor +  thresholdStep) / thresholdStep);
+                let colorRangeIndex = Math.floor((data.src[name][index] - startValueForColor +  stepValueForColor) / stepValueForColor);
                 if (colorRangeIndex >= colorScaleDomainArray.length) {
 //                  return colorScaleDomainArray.length + 1;
                   return 1
@@ -521,7 +521,7 @@ async function setLayers(){
               if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
                 return 0
               } else {
-                return Math.floor((data.src[name][index] - startValueForColor) / thresholdStep);
+                return Math.floor((data.src[name][index] - startValueForColor) / stepValueForColor);
               }
             } else {
               return 0;
@@ -554,7 +554,7 @@ async function setLayers(){
         });
 //      } else if (layerType == 'Contour' && perspectiveTableColumns[name] != undefined) {
 //        let dataArray = d3.transpose([perspectiveTableColumns['longitude [degree]'], perspectiveTableColumns['latitude [degree]'], perspectiveTableColumns[name]]);
-//        let thresholdArray = d3.range(thresholdStart, thresholdEnd, thresholdStep);
+//        let thresholdArray = d3.range(thresholdStart, thresholdEnd, stepValueForColor);
 //        let contours = d3.tricontour().thresholds(thresholdArray)(dataArray);
 //        let data = [];
 //        contours.forEach(contour => {
@@ -581,7 +581,7 @@ async function setLayers(){
       if (layer == undefined) {
         deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone()]});
       } else {
-        deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone(), layer]});
+        deckglViewers[deckglViewerIndex].setProps({layers: [layer, mapGeoJsonLayer.clone()]});
       }
     }
   }
