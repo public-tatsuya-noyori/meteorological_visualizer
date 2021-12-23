@@ -45,13 +45,7 @@ async function initialize(){
 }
 
 async function setViewerType(){
-  let selectElem = document.getElementById('viewerType');
-  if (selectElem.selectedIndex == 2) {
-    perspectiveViewerElem.style.visibility = 'visible';
-  } else {
-    perspectiveViewerElem.style.visibility = 'hidden';
-    await setDeckglViewers();
-  }
+  await setDeckglViewers();
 }
 
 async function setLayerType(){
@@ -344,11 +338,13 @@ async function clearLayers(){
     perspectiveTable = undefined;  
   }
   let perspectiveViewerElemVisibility = perspectiveViewerElem.style.visibility;
+  let perspectiveViewerElemHeight = perspectiveViewerElem.style.height;
   perspectiveViewerElem.remove();
   perspectiveViewerElem = document.createElement('perspective-viewer');
   perspectiveViewerElem.className = 'perspective-viewer-material';
   perspectiveViewerDivElem.appendChild(perspectiveViewerElem);
   perspectiveViewerElem.style.visibility = perspectiveViewerElemVisibility;
+  perspectiveViewerElem.style.height = perspectiveViewerElemHeight;
 }
 
 async function setLayers(){

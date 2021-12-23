@@ -151,12 +151,12 @@ datasetCategoryPathConfigColumnsMap.set(datasetRootPath + categoryPath, {name:na
 .deckglViewerBig {height:520px;width:520px;padding:1px;border:1px dotted;}
 .deckglViewerSmall {height:360px;width:360px;padding:1px;border:1px dotted;}
 .deckglViewerFooter {width:360px;padding:1px;}
-perspective-viewer {position:absolute;top:36px;left:0;right:0;bottom:0;visibility:hidden}
+perspective-viewer {height:520px;width:1040px;}
 </style>
 </head>
 <body>
-<div><select id='viewerType'><option>Map</option><option>Globe</option><option>Table</option></select><select id='layerType'><option>PointCloud</option><!-- <option>Contour</option><option>ScreenGrid(max)</option><option>ScreenGrid(min)</option><option>ScreenGrid(sum points)</option>--></select><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='tileLevel'></select> <select id="tileXY" multiple='multiple' size='1'></select></div>
-<div claas='table' id='deckglViewers'></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='tileLevel'></select> <select id="tileXY" multiple='multiple' size='1'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>Contour</option><option>ScreenGrid(max)</option><option>ScreenGrid(min)</option><option>ScreenGrid(sum points)</option>--></select></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
+<div claas='table' id='deckglViewers'></div>
 </body>
 </html>
