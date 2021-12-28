@@ -1,6 +1,6 @@
 const perspectiveWorker = perspective.worker();
-let categorySelectedTextMap = new Map([]), maxCategoryLevel = 3;
-let datetimeSelectedTextMap = new Map([]), maxDatetimeLevel = 2;
+let categorySelectedTextMap = new Map(), maxCategoryLevel = 3;
+let datetimeSelectedTextMap = new Map(), maxDatetimeLevel = 2;
 let datasetCategoryPath = '', datasetPath = '';
 let deckglViewers = [];
 let deckglViewersViewState = undefined;
@@ -10,35 +10,35 @@ let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
 let dataUrls = [];
 
-document.addEventListener('DOMContentLoaded',() => {
+document.addEventListener('DOMContentLoaded',async () => {
   initialize();
 });
 
 async function initialize(){
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
-  selectElem.addEventListener('change', function(){
+  selectElem.addEventListener('change', async () => {
     setViewerType();
   });
   selectElem = document.getElementById('layerType');
   selectElem.selectedIndex = 0;
-  selectElem.addEventListener('change', function(){
+  selectElem.addEventListener('change', async () => {
     setLayerType();
   });
   for (let level = 0; level <= maxCategoryLevel; level++) {
     selectElem = document.getElementById(['category', level].join(''));
-    selectElem.addEventListener('change', function(){
+    selectElem.addEventListener('change', async () => {
       setCategorySelectors(level);
     });
   }
   for (let level = 0; level <= maxDatetimeLevel; level++) {
     selectElem = document.getElementById(['datetime', level].join(''));
-    selectElem.addEventListener('change', function(){
+    selectElem.addEventListener('change', async () => {
       setDatetimeSelectors(level);
     });
   }
   selectElem = document.getElementById('tileLevel');
-  selectElem.addEventListener('change', function(){
+  selectElem.addEventListener('change', async () => {
     setTileLevel();
   });
   await setCategorySelectors(0);
@@ -50,7 +50,9 @@ async function setViewerType(){
 
 async function setLayerType(){
   await clearLayers();
-  await setLayers();
+  let tables = await getTables();
+  setPerspective(tables);
+  setDeckglLayers(tables);
 }
 
 async function setCategorySelectors(selectedLevel){
@@ -244,7 +246,9 @@ async function setDatetimeSelectors(selectedLevel){
   await setTileLevel();
   await setTileXY();
   await clearLayers();
-  await setLayers();
+  let tables = await getTables();
+  setPerspective(tables);
+  setDeckglLayers(tables);
 }
 
 async function getDatetimeSelectOptions(path){
@@ -347,11 +351,8 @@ async function clearLayers(){
   perspectiveViewerElem.style.height = perspectiveViewerElemHeight;
 }
 
-async function setLayers(){
-  let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
-  let tileDataTables = [];
-  let tileDataTableColumnNames = [];
-  let createTableObject = {};
+async function getTables(){
+  let tables = [];
   for (let dataUrl of dataUrls) {
     let dataUrlList = dataUrl.split('/');
     if (configColumns['filter'].indexOf([dataUrlList[dataUrlList.length - 3], dataUrlList[dataUrlList.length - 2], dataUrlList[dataUrlList.length - 1]].join('/')) > -1) {
@@ -359,34 +360,35 @@ async function setLayers(){
       if (!response.ok) {
         continue
       }
-      let tileDataTable = await perspectiveWorker.table(await response.arrayBuffer());
-      tileDataTables.push(tileDataTable);
-      let tileDataTableSchema = await tileDataTable.schema();
-      Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
-        if (!(tileDataTableColumnName in tileDataTableColumnNames)) {
-          tileDataTableColumnNames.push(tileDataTableColumnName);
-          if (tileDataTableSchema[tileDataTableColumnName] == 'string') {
-            createTableObject[tileDataTableColumnName] = [''];
-          } else if (tileDataTableSchema[tileDataTableColumnName] == 'integer') {
-            createTableObject[tileDataTableColumnName] = [0];
-          } else if (tileDataTableSchema[tileDataTableColumnName] == 'float') {
-            createTableObject[tileDataTableColumnName] = [0.0];
-          } else if (tileDataTableSchema[tileDataTableColumnName] == 'datetime') {
-            createTableObject[tileDataTableColumnName] = [new Date()];
-          }
-        }
-      });
+      tables.push(await response.arrayBuffer());
     }
+  }
+  return tables;
+}
+
+async function setPerspective(tables){
+  let tileDataTables = [];
+  let tileDataTableColumnNames = [];
+  let perspectiveTableSchema = {};
+  for (let table of tables) {
+    let tileDataTable = await perspectiveWorker.table(table);
+    tileDataTables.push(tileDataTable);
+    let tileDataTableSchema = await tileDataTable.schema();
+    Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
+      if (tileDataTableColumnNames.indexOf(tileDataTableColumnName) < 0) {
+        tileDataTableColumnNames.push(tileDataTableColumnName);
+        perspectiveTableSchema[tileDataTableColumnName] = tileDataTableSchema[tileDataTableColumnName];
+      }
+    });
   }
   if (tileDataTables.length == 0) {
     return;
   }
-  perspectiveTable = await perspectiveWorker.table(createTableObject);
-  await perspectiveTable.clear();
+  perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
   await perspectiveViewerElem.load(perspectiveTable);
   for (let tileDataTable of tileDataTables) {
-    let tileDataTableColumns = await (await tileDataTable.view()).to_columns();
-    await perspectiveTable.update(tileDataTableColumns);
+    let tileDataTableArrow = await (await tileDataTable.view()).to_arrow();
+    await perspectiveTable.update(tileDataTableArrow);
   }
   if (perspectiveViewerConfig != undefined) {
     await perspectiveViewerElem.restore(perspectiveViewerConfig);
@@ -395,20 +397,21 @@ async function setLayers(){
     perspectiveViewerConfig = await perspectiveViewerElem.save();
   });
   perspectiveViewerElem.toggleConfig(true);
-  if (perspectiveTable != undefined) {
-//    let perspectiveTableColumns = undefined;
-//    if (perspectiveViewerConfig != undefined && perspectiveViewerConfig.filter.length > 0) {
-//      perspectiveTableColumns = await (await perspectiveTable.view({filter:perspectiveViewerConfig.filter})).to_columns();
-//    } else {
-//    let perspectiveTableColumns = await ().to_columns();
-//    }
-    let perspectiveTableView = await perspectiveTable.view();
-    let perspectiveTableColumns = await perspectiveTableView.to_columns();
+}
+
+async function setDeckglLayers(tables){
+  let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
+  let arrowTable = undefined;
+  for (let [tableIndex, table] of tables.entries()) {
+    if (tableIndex == 0) {
+      arrowTable = Arrow.Table.from(table);
+    } else {
+      arrowTable = arrowTable.concat(Arrow.Table.from(table));
+    }
+  }
+  if (arrowTable != undefined) {
+    let arrowTableColumnNames = arrowTable.schema.fields.map((d) => d.name);
     for (let [deckglViewerIndex, name] of configColumns['name'].entries()) {
-      let perspectiveTableViewMinMax = [];
-      if (name in perspectiveTableColumns) {
-        perspectiveTableViewMinMax = await perspectiveTableView.get_min_max(name);
-      }
       let stepValueForColor = configColumns['stepValueForColor'][deckglViewerIndex];
       let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
       let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
@@ -436,143 +439,61 @@ async function setLayers(){
         layer = new deck.PointCloudLayer({
           pointSize: 3,
           material: false,
-          data: {src: perspectiveTableColumns, length: perspectiveTableColumns['longitude [degree]'].length},
+          data: {src: arrowTable, length: arrowTable.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src['longitude [degree]'][index];
-            target[1] = data.src['latitude [degree]'][index];
-            if (configColumns['height'].length != 0) {
-              configColumns['height'].forEach(heightName => {
-                if (data.src[heightName] != undefined && data.src[heightName][index] != null) {
-                  target[2] = data.src[heightName][index];
-                  return target
-                }
-              })
-            }
+            target[0] = data.src.get(index).get('longitude [degree]');
+            target[1] = data.src.get(index).get('latitude [degree]');
             target[2] = 0;
             return target;
           },
           getColor: (object, {index, data}) => {
-            if (name in perspectiveTableColumns) {
-              let rgb = d3.rgb(colorScale(data.src[name][index]));
-              return [rgb.r, rgb.g, rgb.b];
-            } else {
+            if (arrowTableColumnNames.indexOf(name) < 0) {
               return [0, 0, 0]
             }
+            let rgb = d3.rgb(colorScale(data.src.get(index).get(name)));
+            return [rgb.r, rgb.g, rgb.b];
           }
         });
-      } else if (layerType == 'ScreenGrid(max)') {
-        deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone()]});
-        let colorRange = [];
-        colorScaleDomainArray.forEach(threshold => {
-          let rgb = d3.rgb(colorScale(threshold));
-          colorRange.push([rgb.r, rgb.g, rgb.b]);
-        });
-        console.log(colorRange)
-        layer = new deck.ScreenGridLayer({
-          opacity: 0.8,
-          cellSizePixels: 8,
-          data: {src: perspectiveTableColumns, length: perspectiveTableColumns['longitude [degree]'].length},
-          colorDomain: [1, colorScaleDomainArray.length + 1],
-          colorRange:colorRange,
+      } else if (layerType == 'PointCloud(threshold)') {
+        layer = new deck.PointCloudLayer({
+          pointSize: 3,
+          material: false,
+          data: {src: arrowTable, length: arrowTable.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src['longitude [degree]'][index];
-            target[1] = data.src['latitude [degree]'][index];
+            target[0] = data.src.get(index).get('longitude [degree]');
+            target[1] = data.src.get(index).get('latitude [degree]');
+            target[2] = 0;
             return target;
           },
-          getWeight: (object, {index, data}) => {
-            if (name in perspectiveTableColumns) {
-              if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
-                return 0;
-              } else {
-                if ((stepValueForColor > 0 && data.src[name][index] - startValueForColor <= 0) || (stepValueForColor < 0 && data.src[name][index] - startValueForColor >= 0)) {
-                  return 1;
-                }
-                let colorRangeIndex = Math.floor((data.src[name][index] - startValueForColor +  stepValueForColor) / stepValueForColor);
-                if (colorRangeIndex >= colorScaleDomainArray.length) {
-//                  return colorScaleDomainArray.length + 1;
-                  return 1
-                } else {
-//                  return colorRangeIndex;
-                  return 1
-                }
-              }
-            } else {
-              return 0;
+          getColor: (object, {index, data}) => {
+            if (arrowTableColumnNames.indexOf(name) < 0) {
+              return [0, 0, 0]
             }
-          },
-          aggregation: 'MAX'
-        });
-      } else if (layerType == 'ScreenGrid(min)') {
-        layer = new deck.ScreenGridLayer({
-          opacity: 0.8,
-          cellSizePixels: 8,
-          data: {src: perspectiveTableColumns, length: perspectiveTableColumns['longitude [degree]'].length},
-          getPosition: (object, {index, data, target}) => {
-            target[0] = data.src['longitude [degree]'][index];
-            target[1] = data.src['latitude [degree]'][index];
-            return target;
-          },
-          getWeight: (object, {index, data}) => {
-            if (name in perspectiveTableColumns) {
-              if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
-                return 0
-              } else {
-                return Math.floor((data.src[name][index] - startValueForColor) / stepValueForColor);
-              }
-            } else {
-              return 0;
-            }
-          },
-          aggregation: 'MIN'
+            let rgb = d3.rgb(colorScale(Math.round(data.src.get(index).get(name)/stepValueForColor) * stepValueForColor))
+            return [rgb.r, rgb.g, rgb.b];
+          }
         });
       } else if (layerType == 'ScreenGrid(sum points)') {
         layer = new deck.ScreenGridLayer({
           opacity: 0.8,
-          cellSizePixels: 8,
-          data: {src: perspectiveTableColumns, length: perspectiveTableColumns['longitude [degree]'].length},
+          cellSizePixels: 6,
+          data: {src: arrowTable, length: arrowTable.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src['longitude [degree]'][index];
-            target[1] = data.src['latitude [degree]'][index];
+            target[0] = data.src.get(index).get('longitude [degree]');
+            target[1] = data.src.get(index).get('latitude [degree]');
             return target;
           },
           getWeight: (object, {index, data}) => {
-            if (name in perspectiveTableColumns) {
-              if (data.src[name][index] == null || data.src[name][index] == undefined || data.src[name][index] == '') {
-                return 0
-              } else {
-                return 1;
-              }
-            } else {
+            if (arrowTableColumnNames.indexOf(name) < 0) {
               return 0;
             }
+            if (data.src.get(index).get(name) == null) {
+              return 0
+            }
+            return 1;
           },
           aggregation: 'SUM'
         });
-//      } else if (layerType == 'Contour' && perspectiveTableColumns[name] != undefined) {
-//        let dataArray = d3.transpose([perspectiveTableColumns['longitude [degree]'], perspectiveTableColumns['latitude [degree]'], perspectiveTableColumns[name]]);
-//        let thresholdArray = d3.range(thresholdStart, thresholdEnd, stepValueForColor);
-//        let contours = d3.tricontour().thresholds(thresholdArray)(dataArray);
-//        let data = [];
-//        contours.forEach(contour => {
-//          let rgb = d3.rgb(colorScale(contour.value));
-//          contour.coordinates.forEach(rings => {
-//            rings.forEach(contour => {
-//              data.push({contour:contour, color:[rgb.r,rgb.g,rgb.b]});
-//            });
-//          });
-//        });
-//        layer = new deck.PolygonLayer({
-//          data: data,
-//          stroked: true,
-//          filled: true,
-//          wireframe: true,
-//          lineWidthMinPixels: 1,
-//          getPolygon: d => d.contour,
-//          getElevation: 0,
-//          getFillColor: d => d.color,
-//          getLineColor: [80, 80, 80],
-//          getLineWidth: 1
-//        });
       }
       if (layer == undefined) {
         deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone()]});

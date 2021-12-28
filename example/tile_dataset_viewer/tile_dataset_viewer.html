@@ -19,8 +19,8 @@
 <!-- <script src='https://cdn.jsdelivr.net/npm/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script> -->
 <script src='https://unpkg.com/d3@7.1.1/dist/d3.min.js'></script>
 <!-- <script src='https://cdn.jsdelivr.net/npm/d3@7.1.1/dist/d3.min.js'></script> -->
-<script src='https://unpkg.com/d3-tricontour@1.0.2/dist/d3-tricontour.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/d3-tricontour@1.0.2/dist/d3-tricontour.min.js'></script> -->
+<script src='https://unpkg.com/apache-arrow@6.0.1/Arrow.es2015.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/apache-arrow@6.0.1/Arrow.es2015.min.js'></script> -->
 <script type='module' src='./js/tile_dataset_viewer.js'></script>
 <script>
 const mapGeoJsonLayer = new deck.GeoJsonLayer({data:'js/ne_110m_coastline.json',stroked:true,filled:true,lineWidthMinPixels:2,opacity:0.4,getLineColor:[60, 60, 60],getFillColor:[200, 200, 200]});
@@ -31,7 +31,7 @@ const globeViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,p
 //const globeViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
 const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: true});
 const numberOfConfigDeckglViewersTableTd = 2;
-let datasetCategoryPathConfigColumnsMap = new Map([]);
+let datasetCategoryPathConfigColumnsMap = new Map();
 let categoryPath, name, height, filter, stepValueForColor, numberOfStepForColor, startColor, hslHueAngle, configTable;
 
 categoryPath = 'bufr_to_arrow/ocean/float/all/';
@@ -155,7 +155,7 @@ perspective-viewer {height:520px;width:1040px;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='tileLevel'></select> <select id="tileXY" multiple='multiple' size='1'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>Contour</option><option>ScreenGrid(max)</option><option>ScreenGrid(min)</option><option>ScreenGrid(sum points)</option>--></select></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='tileLevel'></select> <select id="tileXY" multiple='multiple' size='1'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><option>PointCloud(threshold)</option><option>ScreenGrid(sum points)</option></select></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
 <div claas='table' id='deckglViewers'></div>
 </body>
