@@ -50,9 +50,9 @@ async function setViewerType(){
 
 async function setLayerType(){
   await clearLayers();
-  let tables = await getTables();
-  setPerspective(tables);
-  setDeckglLayers(tables);
+  let arrayBuffers = await getArrayBuffers();
+  await setDeckglLayers(arrayBuffers);
+  await setPerspective(arrayBuffers);
 }
 
 async function setCategorySelectors(selectedLevel){
@@ -246,9 +246,9 @@ async function setDatetimeSelectors(selectedLevel){
   await setTileLevel();
   await setTileXY();
   await clearLayers();
-  let tables = await getTables();
-  setPerspective(tables);
-  setDeckglLayers(tables);
+  let arrayBuffers = await getArrayBuffers();
+  await setDeckglLayers(arrayBuffers);
+  await setPerspective(arrayBuffers);
 }
 
 async function getDatetimeSelectOptions(path){
@@ -351,8 +351,9 @@ async function clearLayers(){
   perspectiveViewerElem.style.height = perspectiveViewerElemHeight;
 }
 
-async function getTables(){
-  let tables = [];
+async function getArrayBuffers(){
+  let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
+  let arrayBuffers = [];
   for (let dataUrl of dataUrls) {
     let dataUrlList = dataUrl.split('/');
     if (configColumns['filter'].indexOf([dataUrlList[dataUrlList.length - 3], dataUrlList[dataUrlList.length - 2], dataUrlList[dataUrlList.length - 1]].join('/')) > -1) {
@@ -360,18 +361,18 @@ async function getTables(){
       if (!response.ok) {
         continue
       }
-      tables.push(await response.arrayBuffer());
+      arrayBuffers.push(await response.arrayBuffer());
     }
   }
-  return tables;
+  return arrayBuffers;
 }
 
-async function setPerspective(tables){
+async function setPerspective(arrayBuffers){
   let tileDataTables = [];
   let tileDataTableColumnNames = [];
   let perspectiveTableSchema = {};
-  for (let table of tables) {
-    let tileDataTable = await perspectiveWorker.table(table);
+  for (let arrayBuffer of arrayBuffers) {
+    let tileDataTable = await perspectiveWorker.table(arrayBuffer);
     tileDataTables.push(tileDataTable);
     let tileDataTableSchema = await tileDataTable.schema();
     Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
@@ -399,92 +400,99 @@ async function setPerspective(tables){
   perspectiveViewerElem.toggleConfig(true);
 }
 
-async function setDeckglLayers(tables){
+async function setDeckglLayers(arrayBuffers){
   let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
-  let arrowTable = undefined;
-  for (let [tableIndex, table] of tables.entries()) {
-    if (tableIndex == 0) {
-      arrowTable = Arrow.Table.from(table);
-    } else {
-      arrowTable = arrowTable.concat(Arrow.Table.from(table));
-    }
+  let layerType = undefined;
+  let selectElem = document.getElementById('layerType');
+  if (selectElem.selectedIndex > -1) {
+    layerType = selectElem.options[selectElem.selectedIndex].text;
+  } else {
+    layerType = selectElem.options[0].text;
+    selectElem.selectedIndex = 0;
   }
-  if (arrowTable != undefined) {
-    let arrowTableColumnNames = arrowTable.schema.fields.map((d) => d.name);
-    for (let [deckglViewerIndex, name] of configColumns['name'].entries()) {
-      let stepValueForColor = configColumns['stepValueForColor'][deckglViewerIndex];
-      let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
-      let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
-      let rangeHslHue = d3.hsl(configColumns['startColor'][deckglViewerIndex]).h;
-      let hslHueAngle = configColumns['hslHueAngle'][deckglViewerIndex];
-      let colorScaleRangeArray = [];
-      let colorScaleDomainArray = [];
-      let hslHueStep = hslHueAngle / numberOfStepForColor;
-      d3.range(startValueForColor, numberOfStepForColor * stepValueForColor + startValueForColor, stepValueForColor).forEach(domainValue => {
-        colorScaleRangeArray.push(d3.hsl(rangeHslHue, 1.0, 0.5));
-        colorScaleDomainArray.push(domainValue);
-        rangeHslHue = rangeHslHue + hslHueStep;
-      });
-      let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
+  for (let [deckglViewerIndex, name] of configColumns['name'].entries()) {
+    let layers = [];
+    let stepValueForColor = configColumns['stepValueForColor'][deckglViewerIndex];
+    let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
+    let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
+    let rangeHslHue = d3.hsl(configColumns['startColor'][deckglViewerIndex]).h;
+    let hslHueAngle = configColumns['hslHueAngle'][deckglViewerIndex];
+    let colorScaleRangeArray = [];
+    let colorScaleDomainArray = [];
+    let hslHueStep = hslHueAngle / numberOfStepForColor;
+    d3.range(startValueForColor, numberOfStepForColor * stepValueForColor + startValueForColor, stepValueForColor).forEach(domainValue => {
+      colorScaleRangeArray.push(d3.hsl(rangeHslHue, 1.0, 0.5));
+      colorScaleDomainArray.push(domainValue);
+      rangeHslHue = rangeHslHue + hslHueStep;
+    });
+    let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
+    for (let arrayBuffer of arrayBuffers) {
+      let table = Arrow.Table.from(arrayBuffer);
+      let tableColumnNames = table.schema.fields.map((d) => d.name);
       let layer = undefined;
-      let layerType = undefined;
-      let selectElem = document.getElementById('layerType');
-      if (selectElem.selectedIndex > -1) {
-        layerType = selectElem.options[selectElem.selectedIndex].text;
-      } else {
-        layerType = selectElem.options[0].text;
-        selectElem.selectedIndex = 0;
-      }
       if (layerType == 'PointCloud') {
         layer = new deck.PointCloudLayer({
           pointSize: 3,
           material: false,
-          data: {src: arrowTable, length: arrowTable.length},
+          data: {src: table, length: table.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src.get(index).get('longitude [degree]');
-            target[1] = data.src.get(index).get('latitude [degree]');
+            let row = data.src.get(index);
+            target[0] = row.get('longitude [degree]');
+            target[1] = row.get('latitude [degree]');
             target[2] = 0;
             return target;
           },
           getColor: (object, {index, data}) => {
-            if (arrowTableColumnNames.indexOf(name) < 0) {
-              return [0, 0, 0]
+            if (tableColumnNames.indexOf(name) < 0) {
+              return [0, 0, 0];
             }
-            let rgb = d3.rgb(colorScale(data.src.get(index).get(name)));
-            return [rgb.r, rgb.g, rgb.b];
+            let value = data.src.get(index).get(name);
+            if (value == null) {
+              return [0, 0, 0];
+            } else {
+              let rgb = d3.rgb(colorScale(value));
+              return [rgb.r, rgb.g, rgb.b];
+            }
           }
         });
       } else if (layerType == 'PointCloud(threshold)') {
         layer = new deck.PointCloudLayer({
           pointSize: 3,
           material: false,
-          data: {src: arrowTable, length: arrowTable.length},
+          data: {src: table, length: table.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src.get(index).get('longitude [degree]');
-            target[1] = data.src.get(index).get('latitude [degree]');
+            let row = data.src.get(index);
+            target[0] = row.get('longitude [degree]');
+            target[1] = row.get('latitude [degree]');
             target[2] = 0;
             return target;
           },
           getColor: (object, {index, data}) => {
-            if (arrowTableColumnNames.indexOf(name) < 0) {
-              return [0, 0, 0]
+            if (tableColumnNames.indexOf(name) < 0) {
+              return [0, 0, 0];
             }
-            let rgb = d3.rgb(colorScale(Math.round(data.src.get(index).get(name)/stepValueForColor) * stepValueForColor))
-            return [rgb.r, rgb.g, rgb.b];
+            let value = data.src.get(index).get(name);
+            if (value == null) {
+              return [0, 0, 0];
+            } else {
+              let rgb = d3.rgb(colorScale(Math.round(value/stepValueForColor) * stepValueForColor));
+              return [rgb.r, rgb.g, rgb.b];  
+            }
           }
         });
       } else if (layerType == 'ScreenGrid(sum points)') {
         layer = new deck.ScreenGridLayer({
           opacity: 0.8,
           cellSizePixels: 6,
-          data: {src: arrowTable, length: arrowTable.length},
+          data: {src: table, length: table.length},
           getPosition: (object, {index, data, target}) => {
-            target[0] = data.src.get(index).get('longitude [degree]');
-            target[1] = data.src.get(index).get('latitude [degree]');
+            let row = data.src.get(index);
+            target[0] = row.get('longitude [degree]');
+            target[1] = row.get('latitude [degree]');
             return target;
           },
           getWeight: (object, {index, data}) => {
-            if (arrowTableColumnNames.indexOf(name) < 0) {
+            if (tableColumnNames.indexOf(name) < 0) {
               return 0;
             }
             if (data.src.get(index).get(name) == null) {
@@ -495,11 +503,11 @@ async function setDeckglLayers(tables){
           aggregation: 'SUM'
         });
       }
-      if (layer == undefined) {
-        deckglViewers[deckglViewerIndex].setProps({layers: [mapGeoJsonLayer.clone()]});
-      } else {
-        deckglViewers[deckglViewerIndex].setProps({layers: [layer, mapGeoJsonLayer.clone()]});
+      if (layer != undefined) {
+        layers.push(layer);
       }
     }
+    layers.push(mapGeoJsonLayer.clone());
+    deckglViewers[deckglViewerIndex].setProps({layers: layers});
   }
 }
