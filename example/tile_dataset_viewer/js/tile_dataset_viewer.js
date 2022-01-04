@@ -368,36 +368,41 @@ async function getArrayBuffers(){
 }
 
 async function setPerspective(arrayBuffers){
-  let tileDataTables = [];
-  let tileDataTableColumnNames = [];
   let perspectiveTableSchema = {};
+  let perspectiveTableColumnNames = [];
   for (let arrayBuffer of arrayBuffers) {
-    let tileDataTable = await perspectiveWorker.table(arrayBuffer);
-    tileDataTables.push(tileDataTable);
-    let tileDataTableSchema = await tileDataTable.schema();
-    Object.keys(tileDataTableSchema).forEach(tileDataTableColumnName => {
-      if (tileDataTableColumnNames.indexOf(tileDataTableColumnName) < 0) {
-        tileDataTableColumnNames.push(tileDataTableColumnName);
-        perspectiveTableSchema[tileDataTableColumnName] = tileDataTableSchema[tileDataTableColumnName];
+    let table = Arrow.Table.from(arrayBuffer);
+    let tableColumnNames = table.schema.fields.map((d) => d.name);
+    let tableColumnTypes = table.schema.fields.map((d) => d.type);
+    tableColumnNames.forEach((tableColumnName, tableColumnIndex) => {
+      if (perspectiveTableColumnNames.indexOf(tableColumnName) < 0) {
+        if (tableColumnTypes[tableColumnIndex].toString().indexOf('tf8') > -1) {
+          perspectiveTableSchema[tableColumnName] = 'string';
+        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('loat') > -1) {
+          perspectiveTableSchema[tableColumnName] = 'float';
+        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('nt') > -1) {
+          perspectiveTableSchema[tableColumnName] = 'integer';
+        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('imestamp') > -1) {
+          perspectiveTableSchema[tableColumnName] = 'datetime';
+        }
+        perspectiveTableColumnNames.push(tableColumnName);
       }
     });
   }
-  if (tileDataTables.length == 0) {
-    return;
+  if (Object.keys(perspectiveTableSchema).length > 0) {
+    perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
+    for (let arrayBuffer of arrayBuffers) {
+      await perspectiveTable.update(arrayBuffer);
+    }
+    await perspectiveViewerElem.load(perspectiveTable);
+    if (perspectiveViewerConfig != undefined) {
+      await perspectiveViewerElem.restore(perspectiveViewerConfig);
+    }
+    perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
+      perspectiveViewerConfig = await perspectiveViewerElem.save();
+    });
+    perspectiveViewerElem.toggleConfig(true);
   }
-  perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
-  await perspectiveViewerElem.load(perspectiveTable);
-  for (let tileDataTable of tileDataTables) {
-    let tileDataTableArrow = await (await tileDataTable.view()).to_arrow();
-    await perspectiveTable.update(tileDataTableArrow);
-  }
-  if (perspectiveViewerConfig != undefined) {
-    await perspectiveViewerElem.restore(perspectiveViewerConfig);
-  }
-  perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
-    perspectiveViewerConfig = await perspectiveViewerElem.save();
-  });
-  perspectiveViewerElem.toggleConfig(true);
 }
 
 async function setDeckglLayers(arrayBuffers){
