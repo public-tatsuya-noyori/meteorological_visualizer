@@ -8,7 +8,6 @@ let perspectiveViewerElem = document.getElementsByTagName("perspective-viewer")[
 let perspectiveViewerConfig = undefined;
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
-let dataUrls = [];
 
 document.addEventListener('DOMContentLoaded',async () => {
   initialize();
@@ -37,11 +36,21 @@ async function initialize(){
       setDatetimeSelectors(level);
     });
   }
-  selectElem = document.getElementById('tileLevel');
-  selectElem.addEventListener('change', async () => {
-    setTileLevel();
-  });
   await setCategorySelectors(0);
+}
+
+async function getSelectOptions(path){
+  let options = [], params = {Bucket: bucket, Prefix: path, Delimiter: '/'}, response = {};
+  do {
+    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
+    response.CommonPrefixes.forEach(commonPrefix => {
+      options.push(commonPrefix.Prefix.replace(path, ''));
+    });
+    if (response.IsTruncated) {
+      params.ContinuationToken = response.NextContinuationToken;
+    }
+  } while (response.IsTruncated);
+  return options;
 }
 
 async function setViewerType(){
@@ -57,11 +66,10 @@ async function setLayerType(){
 
 async function setCategorySelectors(selectedLevel){
   perspectiveViewerConfig = undefined;
-  let path = datasetRootPath;
-  for (let level = 0; level < selectedLevel; level++) {
-    if (level > 0) {
-      path = [path, categorySelectedTextMap.get(level - 1)].join('');
-    }
+  datasetCategoryPath = '';
+  let path = '';
+  for (let level = 1; level < selectedLevel; level++) {
+    path = [path, categorySelectedTextMap.get(level - 1)].join('');
   }
   for (let level = selectedLevel; level <= maxCategoryLevel; level++) {
     let selectElem = document.getElementById(['category', level].join(''));
@@ -72,33 +80,31 @@ async function setCategorySelectors(selectedLevel){
     if (level >= selectedLevel) {
       path = [path, categorySelectedTextMap.get(level - 1)].join('');
     }
-    let options = await getCategorySelectOptions(path);
+    let options = [];
+    if (level == 0) {
+      options = await getSelectOptions('/');
+    } else {
+      options = await getSelectOptions(path);
+    }
     selectElem.textContent = null;
     for (let option of options) {
+      if (level == 0) {
+        if (option.length == 4) {
+          option = [option, '/'].join('');
+        } else {
+          continue;
+        }
+      }
       let optionElem = document.createElement('option');
       optionElem.textContent = option;
       selectElem.appendChild(optionElem);
     }
     selectElem.selectedIndex = selectedIndex;
     categorySelectedTextMap.set(level, selectElem.options[selectElem.selectedIndex].text);
+    datasetCategoryPath = [path, selectElem.options[selectElem.selectedIndex].text].join('');
   }
-  datasetCategoryPath = [path, categorySelectedTextMap.get(maxCategoryLevel)].join('');
   setDeckglViewers();
   await setDatetimeSelectors(-1);
-}
-
-async function getCategorySelectOptions(path){
-  let options = [], params = {Bucket: bucket, Prefix: path, Delimiter: '/'}, response = {};
-  do {
-    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
-    response.CommonPrefixes.forEach(commonPrefix => {
-      options.push(commonPrefix.Prefix.replace(path, ''));
-    });
-    if (response.IsTruncated) {
-      params.ContinuationToken = response.NextContinuationToken;
-    }
-  } while (response.IsTruncated);
-  return options;
 }
 
 async function setDeckglViewers(){
@@ -110,7 +116,7 @@ async function setDeckglViewers(){
     viewerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  let configNames = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath).name
+  let configNames = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length)).name
   let numberOfConfigDeckglViewer = configNames.length;
   let numberOfDeckglViewer = deckglViewers.length;
   if (numberOfDeckglViewer > numberOfConfigDeckglViewer) {
@@ -225,7 +231,7 @@ async function setDatetimeSelectors(selectedLevel){
     if (level >= selectedLevel) {
       path = [path, datetimeSelectedTextMap.get(level - 1)].join('');
     }
-    let options = await getDatetimeSelectOptions(path);
+    let options = await getSelectOptions(path);
     selectElem.textContent = null;
     for (let option of options) {
       let optionElem = document.createElement('option');
@@ -243,94 +249,10 @@ async function setDatetimeSelectors(selectedLevel){
     datetimeSelectedTextMap.set(level, selectElem.options[selectElem.selectedIndex].text);
   }
   datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
-  await setTileLevel();
-  await setTileXY();
   await clearLayers();
   let arrayBuffers = await getArrayBuffers();
   await setDeckglLayers(arrayBuffers);
   await setPerspective(arrayBuffers);
-}
-
-async function getDatetimeSelectOptions(path){
-  let options = [], params = {Bucket: bucket, Prefix: path, Delimiter: '/'}, response = {};
-  do {
-    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
-    response.CommonPrefixes.forEach(commonPrefix => {
-      options.push(commonPrefix.Prefix.replace(path, ''));
-    });
-    if (response.IsTruncated) {
-      params.ContinuationToken = response.NextContinuationToken;
-    }
-  } while (response.IsTruncated);
-  return options;
-}
-
-async function setTileLevel(){
-  let selectElem = document.getElementById('tileLevel');
-  let selectedText = '';
-  if (selectElem.selectedIndex > -1) {
-    selectedText = selectElem.options[selectElem.selectedIndex].text;
-  }
-  selectElem.textContent = null;
-  let params = {Bucket: bucket, Prefix: datasetPath, Delimiter: '/'}, response = {};
-  do {
-    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
-    response.CommonPrefixes.forEach((commonPrefix, optionIndex) => {
-      let option = commonPrefix.Prefix.replace(datasetPath, '');
-      let optionElem = document.createElement('option');
-      optionElem.textContent = option;
-      selectElem.appendChild(optionElem);
-      if (selectedText == option || selectedText == '') {
-        selectElem.selectedIndex = optionIndex;
-      }
-    });
-    if (response.IsTruncated) {
-      params.ContinuationToken = response.NextContinuationToken;
-    }
-  } while (response.IsTruncated);
-}
-
-async function setTileXY(){
-  dataUrls = [];
-  let selectElem = document.getElementById('tileLevel');
-  let tileLevel = selectElem.options[selectElem.selectedIndex].text;
-  selectElem = document.getElementById('tileXY');
-  let selectedText = [];
-  selectElem.textContent = null;
-  let path = [datasetPath, tileLevel].join('');
-  let params = {Bucket: bucket, Prefix: path, Delimiter: '/'}, response = {};
-  do {
-    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
-    for (let commonPrefix of response.CommonPrefixes) {
-      let option = commonPrefix.Prefix.replace(path, '');
-      let ys = await getTileYs(commonPrefix.Prefix);
-      ys.forEach(y => {
-        let optionElem = document.createElement('option');
-        optionElem.textContent = [option, y].join('');
-        selectElem.appendChild(optionElem);
-        optionElem.selected = true;
-        dataUrls.push([commonPrefix.Prefix, y].join(''));
-      });
-    }
-    if (response.IsTruncated) {
-      params.ContinuationToken = response.NextContinuationToken;
-    }
-  } while (response.IsTruncated);
-}
-
-async function getTileYs(path){
-  let ys = [];
-  let params = {Bucket: bucket, Prefix: path, Delimiter: '/'}, response = {};
-  do {
-    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
-    response.Contents.forEach(content => {
-      ys.push(content.Key.replace(path, ''));
-    });
-    if (response.IsTruncated) {
-      params.ContinuationToken = response.NextContinuationToken;
-    }
-  } while (response.IsTruncated);
-  return ys;
 }
 
 async function clearLayers(){
@@ -352,12 +274,22 @@ async function clearLayers(){
 }
 
 async function getArrayBuffers(){
-  let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
   let arrayBuffers = [];
-  for (let dataUrl of dataUrls) {
-    let dataUrlList = dataUrl.split('/');
-    if (configColumns['filter'].indexOf([dataUrlList[dataUrlList.length - 3], dataUrlList[dataUrlList.length - 2], dataUrlList[dataUrlList.length - 1]].join('/')) > -1) {
-      let response = await fetch([endpoint, bucket, '/', dataUrl].join(''));
+  let files = [];
+  let params = {Bucket: bucket, Prefix: datasetPath, Delimiter: '/'}, response = {};
+  do {
+    response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
+    response.Contents.forEach(content => {
+      files.push(content.Key.replace(datasetPath, ''));
+    });
+    if (response.IsTruncated) {
+      params.ContinuationToken = response.NextContinuationToken;
+    }
+  } while (response.IsTruncated);
+  for (let file of files) {
+    if (config['filter'].indexOf(file) > -1) {
+      let response = await fetch([endpoint, bucket, '/', datasetPath, file].join(''));
       if (!response.ok) {
         continue
       }
@@ -370,7 +302,7 @@ async function getArrayBuffers(){
 async function setPerspective(arrayBuffers){
   let perspectiveTableSchema = {};
   let perspectiveTableColumnNames = [];
-  for (let arrayBuffer of arrayBuffers) {
+  arrayBuffers.forEach((arrayBuffer) => {
     let table = Arrow.Table.from(arrayBuffer);
     let tableColumnNames = table.schema.fields.map((d) => d.name);
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
@@ -388,13 +320,13 @@ async function setPerspective(arrayBuffers){
         perspectiveTableColumnNames.push(tableColumnName);
       }
     });
-  }
+  });
   if (Object.keys(perspectiveTableSchema).length > 0) {
     perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
+    await perspectiveViewerElem.load(perspectiveTable);
     for (let arrayBuffer of arrayBuffers) {
       await perspectiveTable.update(arrayBuffer);
     }
-    await perspectiveViewerElem.load(perspectiveTable);
     if (perspectiveViewerConfig != undefined) {
       await perspectiveViewerElem.restore(perspectiveViewerConfig);
     }
@@ -406,7 +338,7 @@ async function setPerspective(arrayBuffers){
 }
 
 async function setDeckglLayers(arrayBuffers){
-  let configColumns = datasetCategoryPathConfigColumnsMap.get(datasetCategoryPath)
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
   if (selectElem.selectedIndex > -1) {
@@ -415,13 +347,13 @@ async function setDeckglLayers(arrayBuffers){
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  for (let [deckglViewerIndex, name] of configColumns['name'].entries()) {
+  config.name.forEach((name, deckglViewerIndex) => {
     let layers = [];
-    let stepValueForColor = configColumns['stepValueForColor'][deckglViewerIndex];
-    let numberOfStepForColor = configColumns['numberOfStepForColor'][deckglViewerIndex];
-    let startValueForColor = configColumns['startValueForColor'][deckglViewerIndex];
-    let rangeHslHue = d3.hsl(configColumns['startColor'][deckglViewerIndex]).h;
-    let hslHueAngle = configColumns['hslHueAngle'][deckglViewerIndex];
+    let stepValueForColor = config['stepValueForColor'][deckglViewerIndex];
+    let numberOfStepForColor = config['numberOfStepForColor'][deckglViewerIndex];
+    let startValueForColor = config['startValueForColor'][deckglViewerIndex];
+    let rangeHslHue = d3.hsl(config['startColor'][deckglViewerIndex]).h;
+    let hslHueAngle = config['hslHueAngle'][deckglViewerIndex];
     let colorScaleRangeArray = [];
     let colorScaleDomainArray = [];
     let hslHueStep = hslHueAngle / numberOfStepForColor;
@@ -431,15 +363,16 @@ async function setDeckglLayers(arrayBuffers){
       rangeHslHue = rangeHslHue + hslHueStep;
     });
     let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
-    for (let arrayBuffer of arrayBuffers) {
+    arrayBuffers.forEach((arrayBuffer, arrayBufferIndex) => {
       let table = Arrow.Table.from(arrayBuffer);
       let tableColumnNames = table.schema.fields.map((d) => d.name);
       let layer = undefined;
       if (layerType == 'PointCloud') {
         layer = new deck.PointCloudLayer({
+          id: [name, '_', arrayBufferIndex].join(''),
           pointSize: 3,
           material: false,
-          data: {src: table, length: table.length},
+          data: {src: table, length: table.count()},
           getPosition: (object, {index, data, target}) => {
             let row = data.src.get(index);
             target[0] = row.get('longitude [degree]');
@@ -462,9 +395,10 @@ async function setDeckglLayers(arrayBuffers){
         });
       } else if (layerType == 'PointCloud(threshold)') {
         layer = new deck.PointCloudLayer({
+          id: [name, '_', arrayBufferIndex].join(''),
           pointSize: 3,
           material: false,
-          data: {src: table, length: table.length},
+          data: {src: table, length: table.count()},
           getPosition: (object, {index, data, target}) => {
             let row = data.src.get(index);
             target[0] = row.get('longitude [degree]');
@@ -487,9 +421,10 @@ async function setDeckglLayers(arrayBuffers){
         });
       } else if (layerType == 'ScreenGrid(sum points)') {
         layer = new deck.ScreenGridLayer({
+          id: [name, '_', arrayBufferIndex].join(''),
           opacity: 0.8,
           cellSizePixels: 6,
-          data: {src: table, length: table.length},
+          data: {src: table, length: table.count()},
           getPosition: (object, {index, data, target}) => {
             let row = data.src.get(index);
             target[0] = row.get('longitude [degree]');
@@ -511,8 +446,8 @@ async function setDeckglLayers(arrayBuffers){
       if (layer != undefined) {
         layers.push(layer);
       }
-    }
+    });
     layers.push(mapGeoJsonLayer.clone());
     deckglViewers[deckglViewerIndex].setProps({layers: layers});
-  }
+  });
 }
