@@ -59,9 +59,9 @@ async function setViewerType(){
 
 async function setLayerType(){
   await clearLayers();
-  let arrayBuffers = await getArrayBuffers();
-  await setDeckglLayers(arrayBuffers);
-  await setPerspective(arrayBuffers);
+  let tables = await getTables();
+  setPerspective(tables);
+  setDeckglLayers(tables);
 }
 
 async function setCategorySelectors(selectedLevel){
@@ -250,9 +250,9 @@ async function setDatetimeSelectors(selectedLevel){
   }
   datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
   await clearLayers();
-  let arrayBuffers = await getArrayBuffers();
-  await setDeckglLayers(arrayBuffers);
-  await setPerspective(arrayBuffers);
+  let tables = await getTables();
+  setPerspective(tables);
+  setDeckglLayers(tables);
 }
 
 async function clearLayers(){
@@ -273,9 +273,9 @@ async function clearLayers(){
   perspectiveViewerElem.style.height = perspectiveViewerElemHeight;
 }
 
-async function getArrayBuffers(){
+async function getTables(){
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
-  let arrayBuffers = [];
+  let tables = [];
   let files = [];
   let params = {Bucket: bucket, Prefix: datasetPath, Delimiter: '/'}, response = {};
   do {
@@ -288,22 +288,21 @@ async function getArrayBuffers(){
     }
   } while (response.IsTruncated);
   for (let file of files) {
-    if (config['filter'].indexOf(file) > -1) {
+    if (config['filter'].length == 0 || config['filter'].indexOf(file.split('.')[0]) > -1) {
       let response = await fetch([endpoint, bucket, '/', datasetPath, file].join(''));
       if (!response.ok) {
         continue
       }
-      arrayBuffers.push(await response.arrayBuffer());
+      tables.push(Arrow.Table.from(await response.arrayBuffer()));
     }
   }
-  return arrayBuffers;
+  return tables;
 }
 
-async function setPerspective(arrayBuffers){
+async function setPerspective(tables){
   let perspectiveTableSchema = {};
   let perspectiveTableColumnNames = [];
-  arrayBuffers.forEach((arrayBuffer) => {
-    let table = Arrow.Table.from(arrayBuffer);
+  tables.forEach((table) => {
     let tableColumnNames = table.schema.fields.map((d) => d.name);
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
     tableColumnNames.forEach((tableColumnName, tableColumnIndex) => {
@@ -324,8 +323,8 @@ async function setPerspective(arrayBuffers){
   if (Object.keys(perspectiveTableSchema).length > 0) {
     perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
     await perspectiveViewerElem.load(perspectiveTable);
-    for (let arrayBuffer of arrayBuffers) {
-      await perspectiveTable.update(arrayBuffer);
+    for (let table of tables) {
+      await perspectiveTable.update(table.serialize().buffer);
     }
     if (perspectiveViewerConfig != undefined) {
       await perspectiveViewerElem.restore(perspectiveViewerConfig);
@@ -334,10 +333,15 @@ async function setPerspective(arrayBuffers){
       perspectiveViewerConfig = await perspectiveViewerElem.save();
     });
     perspectiveViewerElem.toggleConfig(true);
+    let perspectiveTableView = await perspectiveTable.view();
+//    for (let name of perspectiveTableColumnNames) {
+//      let min_max = await perspectiveTableView.get_min_max(name)
+//      console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
+//    }
   }
 }
 
-async function setDeckglLayers(arrayBuffers){
+async function setDeckglLayers(tables){
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
@@ -347,7 +351,7 @@ async function setDeckglLayers(arrayBuffers){
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  config.name.forEach((name, deckglViewerIndex) => {
+  for (let [deckglViewerIndex, name] of config['name'].entries()) {
     let layers = [];
     let stepValueForColor = config['stepValueForColor'][deckglViewerIndex];
     let numberOfStepForColor = config['numberOfStepForColor'][deckglViewerIndex];
@@ -363,13 +367,12 @@ async function setDeckglLayers(arrayBuffers){
       rangeHslHue = rangeHslHue + hslHueStep;
     });
     let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
-    arrayBuffers.forEach((arrayBuffer, arrayBufferIndex) => {
-      let table = Arrow.Table.from(arrayBuffer);
+    tables.forEach((table, tableIndex) => {
       let tableColumnNames = table.schema.fields.map((d) => d.name);
       let layer = undefined;
       if (layerType == 'PointCloud') {
         layer = new deck.PointCloudLayer({
-          id: [name, '_', arrayBufferIndex].join(''),
+          id: [name, '_', tableIndex].join(''),
           pointSize: 3,
           material: false,
           data: {src: table, length: table.count()},
@@ -395,7 +398,7 @@ async function setDeckglLayers(arrayBuffers){
         });
       } else if (layerType == 'PointCloud(threshold)') {
         layer = new deck.PointCloudLayer({
-          id: [name, '_', arrayBufferIndex].join(''),
+          id: [name, '_', tableIndex].join(''),
           pointSize: 3,
           material: false,
           data: {src: table, length: table.count()},
@@ -421,7 +424,7 @@ async function setDeckglLayers(arrayBuffers){
         });
       } else if (layerType == 'ScreenGrid(sum points)') {
         layer = new deck.ScreenGridLayer({
-          id: [name, '_', arrayBufferIndex].join(''),
+          id: [name, '_', tableIndex].join(''),
           opacity: 0.8,
           cellSizePixels: 6,
           data: {src: table, length: table.count()},
@@ -449,5 +452,5 @@ async function setDeckglLayers(arrayBuffers){
     });
     layers.push(mapGeoJsonLayer.clone());
     deckglViewers[deckglViewerIndex].setProps({layers: layers});
-  });
+  }
 }
