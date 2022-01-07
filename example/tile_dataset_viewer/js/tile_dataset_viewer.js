@@ -8,6 +8,7 @@ let perspectiveViewerElem = document.getElementsByTagName("perspective-viewer")[
 let perspectiveViewerConfig = undefined;
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
+let tables = [];
 
 document.addEventListener('DOMContentLoaded',async () => {
   initialize();
@@ -58,13 +59,13 @@ async function setViewerType(){
 }
 
 async function setLayerType(){
-  await clearLayers();
-  let tables = await getTables();
-  setPerspective(tables);
-  setDeckglLayers(tables);
+  await clearDeckglLayers();
+  await setDeckglLayers(tables);
 }
 
 async function setCategorySelectors(selectedLevel){
+  let inputElem = document.getElementById('clearMode');
+  inputElem.checked = true;
   perspectiveViewerConfig = undefined;
   datasetCategoryPath = '';
   let path = '';
@@ -249,16 +250,20 @@ async function setDatetimeSelectors(selectedLevel){
     datetimeSelectedTextMap.set(level, selectElem.options[selectElem.selectedIndex].text);
   }
   datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
-  await clearLayers();
-  let tables = await getTables();
-  setPerspective(tables);
-  setDeckglLayers(tables);
+  await clearDeckglLayers();
+  await clearPerspective();
+  tables = await getTables();
+  await setPerspective(tables);
+  await setDeckglLayers(tables);
 }
 
-async function clearLayers(){
+async function clearDeckglLayers(){
   deckglViewers.forEach(deckglViewer => {
     deckglViewer.setProps({layers: [mapGeoJsonLayer.clone()]});
   });
+}
+
+async function clearPerspective(){
   if (perspectiveTable != undefined) {
     await perspectiveTable.clear();
     perspectiveTable = undefined;  
@@ -274,8 +279,11 @@ async function clearLayers(){
 }
 
 async function getTables(){
-  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
-  let tables = [];
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
+  let inputElem = document.getElementById('clearMode');
+  if (inputElem.checked) {
+    tables = [];
+  }
   let files = [];
   let params = {Bucket: bucket, Prefix: datasetPath, Delimiter: '/'}, response = {};
   do {
@@ -301,22 +309,20 @@ async function getTables(){
 
 async function setPerspective(tables){
   let perspectiveTableSchema = {};
-  let perspectiveTableColumnNames = [];
   tables.forEach((table) => {
     let tableColumnNames = table.schema.fields.map((d) => d.name);
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
     tableColumnNames.forEach((tableColumnName, tableColumnIndex) => {
-      if (perspectiveTableColumnNames.indexOf(tableColumnName) < 0) {
-        if (tableColumnTypes[tableColumnIndex].toString().indexOf('tf8') > -1) {
-          perspectiveTableSchema[tableColumnName] = 'string';
-        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('loat') > -1) {
-          perspectiveTableSchema[tableColumnName] = 'float';
-        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('nt') > -1) {
+      if (tableColumnTypes[tableColumnIndex].toString().indexOf('tf8') > -1) {
+        perspectiveTableSchema[tableColumnName] = 'string';
+      } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('loat') > -1) {
+        perspectiveTableSchema[tableColumnName] = 'float';
+      } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('nt') > -1) {
+        if (perspectiveTableSchema[tableColumnName] == undefined || perspectiveTableSchema[tableColumnName] != 'float') {
           perspectiveTableSchema[tableColumnName] = 'integer';
-        } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('imestamp') > -1) {
-          perspectiveTableSchema[tableColumnName] = 'datetime';
         }
-        perspectiveTableColumnNames.push(tableColumnName);
+      } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('imestamp') > -1) {
+        perspectiveTableSchema[tableColumnName] = 'datetime';
       }
     });
   });
@@ -333,7 +339,7 @@ async function setPerspective(tables){
       perspectiveViewerConfig = await perspectiveViewerElem.save();
     });
     perspectiveViewerElem.toggleConfig(true);
-    let perspectiveTableView = await perspectiveTable.view();
+//    let perspectiveTableView = await perspectiveTable.view();
 //    for (let name of perspectiveTableColumnNames) {
 //      let min_max = await perspectiveTableView.get_min_max(name)
 //      console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);

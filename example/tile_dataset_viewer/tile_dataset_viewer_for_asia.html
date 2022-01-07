@@ -38,7 +38,8 @@ let filter = ['l1x2y0', 'l1x2y1', 'l1x3y0', 'l1x3y1',
               'l2x5y0', 'l2x6y0', 'l2x7y0', 'l2x5y1', 'l2x6y1', 'l2x7y1', 'l2x5y2', 'l2x6y2', 'l2x7y2',
               'l3x9y1', 'l3x10y1', 'l3x11y1', 'l3x12y1', 'l3x13y1', 'l3x14y1',
               'l3x9y2', 'l3x10y2', 'l3x11y2', 'l3x12y2', 'l3x13y2', 'l3x14y2',
-              'l3x9y3', 'l3x10y3', 'l3x11y3', 'l3x12y3', 'l3x13y3', 'l3x14y3'];
+              'l3x9y3', 'l3x10y3', 'l3x11y3', 'l3x12y3', 'l3x13y3', 'l3x14y3',
+              'l3x9y4', 'l3x10y4', 'l3x11y4', 'l3x12y4', 'l3x13y4', 'l3x14y4'];
 
 categoryPath = 'bufr_to_arrow/ocean/float/';
 height = ['water pressure [Pa]'];
@@ -183,7 +184,7 @@ perspective-viewer {height:520px;width:1040px;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>PointCloud(threshold)</option><option>ScreenGrid(sum points)</option> --></select></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>PointCloud(threshold)</option><option>ScreenGrid(sum points)</option> --></select> clear<input type='checkbox' id='clearMode' checked></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
 <div claas='table' id='deckglViewers'></div>
 </body>
