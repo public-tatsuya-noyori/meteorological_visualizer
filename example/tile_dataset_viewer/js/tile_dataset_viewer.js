@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded',async () => {
 });
 
 async function initialize(){
+  let inputElem = document.getElementById('legendMode');
+  inputElem.addEventListener('change', async () => {
+    setLegend();
+  });
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
   selectElem.addEventListener('change', async () => {
@@ -66,6 +70,8 @@ async function setLayerType(){
 async function setCategorySelectors(selectedLevel){
   let inputElem = document.getElementById('clearMode');
   inputElem.checked = true;
+  inputElem = document.getElementById('legendMode');
+  inputElem.checked = false;
   perspectiveViewerConfig = undefined;
   datasetCategoryPath = '';
   let path = '';
@@ -124,7 +130,6 @@ async function setDeckglViewers(){
     for (let deckglViewerIndex = numberOfConfigDeckglViewer; deckglViewerIndex < numberOfDeckglViewer; deckglViewerIndex++) {
       document.getElementById(['deckglViewerHeader', deckglViewerIndex].join('')).style.visibility = 'hidden';
       document.getElementById(['deckglViewer', deckglViewerIndex].join('')).style.visibility = 'hidden';
-      document.getElementById(['deckglViewerFooter', deckglViewerIndex].join('')).style.visibility = 'hidden';
     }
   }
   let deckglViewersInitialViewState = undefined;
@@ -159,15 +164,10 @@ async function setDeckglViewers(){
       }
       deckglViewerElem.style.visibility = 'visible';
       deckglViewerElem.setAttribute('id', ['deckglViewer', deckglViewerIndex].join(''));
-      let deckglViewerFooterElem = document.createElement('div');
-      deckglViewerFooterElem.className = 'deckglViewerFooter';
-      deckglViewerFooterElem.setAttribute('id', ['deckglViewerFooter', deckglViewerIndex].join(''));
-      deckglViewerFooterElem.style.visibility = 'visible';
       let tdElem = document.createElement('div');
       tdElem.className = 'td';
       tdElem.appendChild(deckglViewerHeaderElem);
       tdElem.appendChild(deckglViewerElem);
-      tdElem.appendChild(deckglViewerFooterElem);
       let parentTrElem = document.getElementById(['deckglViewerTr', trNumber].join(''));
       parentTrElem.appendChild(tdElem);
       let deckglViewer = new deck.DeckGL({container:['deckglViewer', deckglViewerIndex].join(''), controller:true, layers: [mapGeoJsonLayer.clone()],
@@ -194,15 +194,17 @@ async function setDeckglViewers(){
       } else {
         deckglViewers[deckglViewerIndex].setProps({views:new deck.MapView({repeat:true})});
       }
-      document.getElementById(['deckglViewerHeader', deckglViewerIndex].join('')).textContent = configNames[deckglViewerIndex];
-      document.getElementById(['deckglViewerHeader', deckglViewerIndex].join('')).style.visibility = 'visible';
+      let deckglViewerHeaderElem = document.getElementById(['deckglViewerHeader', deckglViewerIndex].join(''));
+
+      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex];
+      deckglViewerHeaderElem.style.visibility = 'visible';
+      let deckglViewerElem = document.getElementById(['deckglViewer', deckglViewerIndex].join(''));
       if (viewerType == 'Globe') {
-        document.getElementById(['deckglViewer', deckglViewerIndex].join('')).className = 'deckglViewerSmall';
+        deckglViewerElem.className = 'deckglViewerSmall';
       } else {
-        document.getElementById(['deckglViewer', deckglViewerIndex].join('')).className = 'deckglViewerBig';
+        deckglViewerElem.className = 'deckglViewerBig';
       }
-      document.getElementById(['deckglViewer', deckglViewerIndex].join('')).style.visibility = 'visible';
-      document.getElementById(['deckglViewerFooter', deckglViewerIndex].join('')).style.visibility = 'visible';
+      deckglViewerElem.style.visibility = 'visible';
     }
   }
 }
@@ -339,11 +341,11 @@ async function setPerspective(tables){
       perspectiveViewerConfig = await perspectiveViewerElem.save();
     });
     perspectiveViewerElem.toggleConfig(true);
-//    let perspectiveTableView = await perspectiveTable.view();
-//    for (let name of perspectiveTableColumnNames) {
-//      let min_max = await perspectiveTableView.get_min_max(name)
-//      console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
-//    }
+    let perspectiveTableView = await perspectiveTable.view();
+    for (let name of await perspectiveTable.columns()) {
+      let min_max = await perspectiveTableView.get_min_max(name)
+      console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
+    }
   }
 }
 
@@ -359,20 +361,18 @@ async function setDeckglLayers(tables){
   }
   for (let [deckglViewerIndex, name] of config['name'].entries()) {
     let layers = [];
-    let stepValueForColor = config['stepValueForColor'][deckglViewerIndex];
-    let numberOfStepForColor = config['numberOfStepForColor'][deckglViewerIndex];
-    let startValueForColor = config['startValueForColor'][deckglViewerIndex];
-    let rangeHslHue = d3.hsl(config['startColor'][deckglViewerIndex]).h;
-    let hslHueAngle = config['hslHueAngle'][deckglViewerIndex];
-    let colorScaleRangeArray = [];
-    let colorScaleDomainArray = [];
-    let hslHueStep = hslHueAngle / numberOfStepForColor;
-    d3.range(startValueForColor, numberOfStepForColor * stepValueForColor + startValueForColor, stepValueForColor).forEach(domainValue => {
-      colorScaleRangeArray.push(d3.hsl(rangeHslHue, 1.0, 0.5));
-      colorScaleDomainArray.push(domainValue);
-      rangeHslHue = rangeHslHue + hslHueStep;
-    });
-    let colorScale = d3.scaleLinear().domain(colorScaleDomainArray).range(colorScaleRangeArray);
+    let valueForMinColor = config['valueForMinColor'][deckglViewerIndex];
+    let valueForMaxColor = config['valueForMaxColor'][deckglViewerIndex];
+    let colorScaleDomain = [];
+    for (let i = 0; i < colorScaleRange.length - 1; i++) {
+      colorScaleDomain.push(valueForMinColor + ((valueForMaxColor - valueForMinColor) / (colorScaleRange.length)) * i)
+    }
+    let colorScale = [];
+    if (valueForMinColor < valueForMaxColor) {
+      colorScale = d3.scaleThreshold().domain(colorScaleDomain).range(colorScaleRange);
+    } else {
+      colorScale = d3.scaleThreshold().domain(colorScaleDomain.reverse()).range(colorScaleRangeReverse);
+    }
     tables.forEach((table, tableIndex) => {
       let tableColumnNames = table.schema.fields.map((d) => d.name);
       let layer = undefined;
@@ -458,5 +458,29 @@ async function setDeckglLayers(tables){
     });
     layers.push(mapGeoJsonLayer.clone());
     deckglViewers[deckglViewerIndex].setProps({layers: layers});
+  }
+}
+
+async function setLegend(){
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
+  for (let [deckglViewerIndex, name] of config['name'].entries()) {
+    let valueForMinColor = config['valueForMinColor'][deckglViewerIndex];
+    let valueForMaxColor = config['valueForMaxColor'][deckglViewerIndex];
+    let colorScaleDomain = [];
+    for (let i = 0; i < colorScaleRange.length - 1; i++) {
+      colorScaleDomain.push(valueForMinColor + ((valueForMaxColor - valueForMinColor) / (colorScaleRange.length)) * i);
+    }
+    let colorScale = [];
+    if (valueForMinColor < valueForMaxColor) {
+      colorScale = d3.scaleThreshold().domain(colorScaleDomain).range(colorScaleRange);
+    } else {
+      colorScale = d3.scaleThreshold().domain(colorScaleDomain.reverse()).range(colorScaleRangeReverse);
+    }
+    let inputElem = document.getElementById('legendMode');
+    d3.selectAll(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).remove();
+    if (inputElem.checked) {
+      d3.select(['#', 'deckglViewerHeader', deckglViewerIndex].join('')).append('svg').attr('viewBox', '0 0 360 300').attr('id', ['deckglViewerHeader', deckglViewerIndex, 'Svg'].join(''));
+      d3.select(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).call(d3.legendColor().labels(d3.legendHelpers.thresholdLabels).scale(colorScale));
+    }
   }
 }

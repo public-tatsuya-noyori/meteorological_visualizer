@@ -3,26 +3,30 @@
 <head>
 <meta charset='UTF-8'>
 <title>tile dataset viewer</title>
-<link href='https://unpkg.com/@finos/perspective-viewer@1.0.7/dist/umd/material-dense.css' rel='stylesheet'/>
-<!-- <link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@1.0.7/dist/umd/material-dense.css' rel='stylesheet'/> -->
-<script src='https://unpkg.com/@finos/perspective@1.0.7/dist/umd/perspective.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective@1.0.7/dist/umd/perspective.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer@1.0.7/dist/umd/perspective-viewer.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@1.0.7/dist/umd/perspective-viewer.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer-datagrid@1.0.7/dist/umd/perspective-viewer-datagrid.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@1.0.7/dist/umd/perspective-viewer-datagrid.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer-d3fc@1.0.7/dist/umd/perspective-viewer-d3fc.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@1.0.7/dist/umd/perspective-viewer-d3fc.js'></script> -->
-<script src='https://unpkg.com/deck.gl@8.6.5/dist.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/deck.gl@8.6.5/dist.min.js'></script> -->
-<script src='https://unpkg.com/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/aws-sdk@2.1037.0/dist/aws-sdk.min.js'></script> -->
-<script src='https://unpkg.com/d3@7.1.1/dist/d3.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/d3@7.1.1/dist/d3.min.js'></script> -->
-<script src='https://unpkg.com/apache-arrow@6.0.1/Arrow.es2015.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/apache-arrow@6.0.1/Arrow.es2015.min.js'></script> -->
+<script src='https://unpkg.com/apache-arrow@latest/Arrow.es2015.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/apache-arrow@latest/Arrow.es2015.min.js'></script> -->
+<link href='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/material-dense.css' rel='stylesheet'/>
+<!-- <link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/material-dense.css' rel='stylesheet'/> -->
+<script src='https://unpkg.com/@finos/perspective@latest/dist/umd/perspective.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective@latest/dist/umd/perspective.js'></script> -->
+<script src='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/perspective-viewer.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/perspective-viewer.js'></script> -->
+<script src='https://unpkg.com/@finos/perspective-viewer-datagrid@latest/dist/umd/perspective-viewer-datagrid.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@latest/dist/umd/perspective-viewer-datagrid.js'></script> -->
+<script src='https://unpkg.com/@finos/perspective-viewer-d3fc@latest/dist/umd/perspective-viewer-d3fc.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@latest/dist/umd/perspective-viewer-d3fc.js'></script> -->
+<script src='https://unpkg.com/deck.gl@latest/dist.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/deck.gl@latest/dist.min.js'></script> -->
+<script src='https://unpkg.com/aws-sdk@latest/dist/aws-sdk.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/aws-sdk@latest/dist/aws-sdk.min.js'></script> -->
+<script src='https://unpkg.com/d3@latest/dist/d3.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/d3@latest/dist/d3.min.js'></script> -->
+<script src='https://unpkg.com/d3-svg-legend@latest/d3-legend.min.js'></script>
+<!-- <script src='https://cdn.jsdelivr.net/npm/d3-svg-legend@latest/d3-legend.min.js'></script> -->
 <script type='module' src='./js/tile_dataset_viewer.js'></script>
 <script>
+const colorScaleRange = ['#8000ff', '#0000ff', '#0080ff', '#00ffff', '#00ff80', '#00ff00', '#80ff00', '#ffff00', '#ff8000', '#ff0000', '#ff0080', '#ff00ff'];
+const colorScaleRangeReverse = ['#ff00ff', '#ff0080', '#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff', '#0080ff', '#0000ff', '#8000ff'];
 const mapGeoJsonLayer = new deck.GeoJsonLayer({data:'js/ne_110m_coastline.json',stroked:true,filled:true,lineWidthMinPixels:2,opacity:0.4,getLineColor:[60, 60, 60],getFillColor:[200, 200, 200]});
 const endpoint = 'http://202.32.195.138:9000/', bucket = 'aa-open-dataset';
 const mapViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
@@ -43,134 +47,94 @@ let filter = [];
 
 categoryPath = 'bufr_to_arrow/ocean/float/';
 height = ['water pressure [Pa]'];
-name = ['water pressure [Pa]'];
-stepValueForColor = [1000000.0];
-numberOfStepForColor = [20];
-startValueForColor = [0.0];
-startColor = ['blue'];
-hslHueAngle = [-300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+name = ['water pressure [Pa]', 'oceanographic water temperature [K]', 'salinity [0/00]'];
+valueForMinColor = [0.0, 278.15, 30.0];
+valueForMaxColor = [24000000.0, 308.15, 42.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/surface/buoy/';
 height = [];
 name = ['pressure reduced to mean sea level [Pa]', 'oceanographic water temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [-400.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [30, 40, 30, 36];
-startValueForColor = [104000.0, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [106000.0, 278.15, 0.0, 30.0];
+valueForMaxColor = [94000.0, 308.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/surface/gps_station/';
 height = ['height of station [m]'];
 name = ['atmospheric path delay in satellite signal [m]'];
-stepValueForColor = [0.05];
-numberOfStepForColor = [40];
-startValueForColor = [1.0];
-startColor = ['blue'];
-hslHueAngle = [-300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [0.8];
+valueForMaxColor = [3.2];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/surface/ship/';
 height = [];
 name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [-400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [30, 40, 40, 30, 36];
-startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [106000.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [94000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/surface/weather_station/';
 height = ['height of station [m]'];
 name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [-400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [30, 40, 40, 30, 36];
-startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [106000.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [94000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/upper_air/aircraft/';
 height = ['flight level [m]' , 'height [m]'];
 name = ['flight level [m]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [40, 40, 40, 30, 36];
-startValueForColor = [400.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [400.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [16000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/upper_air/profiler/';
 height = ['height [m]'];
 name = ['height [m]', 'virtual temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [40, 40, 40, 30, 36];
-startValueForColor = [400.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [400.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [16000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/upper_air/sonde/';
 height = ['geopotential height [m]'];
 name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [-400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [30, 40, 40, 30, 36];
-startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [106000.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [94000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/upper_air/drop_sonde/';
 height = ['geopotential height [m]'];
 name = ['pressure [Pa]', 'air temperature [K]', 'dewpoint temperature [K]', 'wind speed [m s-1]', 'wind direction [degree]'];
-stepValueForColor = [-400.0, 1.0, 1.0, 1.0, 10.0];
-numberOfStepForColor = [30, 40, 40, 30, 36];
-startValueForColor = [104000.0, 263.15, 263.15, 0.0, 0.0];
-startColor = ['blue', 'blue', 'blue', 'blue', 'red'];
-hslHueAngle = [-300, -300, -300, -300, -360];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+valueForMinColor = [106000.0, 253.15, 253.15, 0.0, 30.0];
+valueForMaxColor = [94000.0, 313.15, 313.15, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/satellite/amsua/';
 height = [];
-name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=13)', 'brightness temperature [K](channel=14)'];
-stepValueForColor = [1.0, 1.0, 1.0, 1.0];
-numberOfStepForColor = [60, 60, 60, 60];
-startValueForColor = [153.15, 153.15, 233.15, 233.15];
-startColor = ['blue', 'blue', 'blue', 'blue'];
-hslHueAngle = [-300, -300, -300, -300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
-
-categoryPath = 'bufr_to_arrow/satellite/csr/';
-height = [];
-name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=9)', 'brightness temperature [K](channel=10)'];
-stepValueForColor = [1.0, 1.0, 1.0, 1.0];
-numberOfStepForColor = [40, 40, 40, 40];
-startValueForColor = [263.15, 223.15, 263.15, 253.15];
-startColor = ['blue', 'blue', 'blue', 'blue'];
-hslHueAngle = [-300, -300, -300, -300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=3)', 'brightness temperature [K](channel=4)', 'brightness temperature [K](channel=5)', 'brightness temperature [K](channel=6)', 'brightness temperature [K](channel=7)', 'brightness temperature [K](channel=8)', 'brightness temperature [K](channel=9)', 'brightness temperature [K](channel=10)', 'brightness temperature [K](channel=11)', 'brightness temperature [K](channel=12)', 'brightness temperature [K](channel=13)', 'brightness temperature [K](channel=14)', 'brightness temperature [K](channel=15)'];
+valueForMinColor = [133.15, 133.15, 193.15, 193.15, 213.15, 203.15, 203.15, 193.15, 183.15, 193.15, 198.15, 213.15, 223.15, 233.15, 178.15];
+valueForMaxColor = [313.15, 313.15, 313.15, 313.15, 273.15, 263.15, 263.15, 253.15, 243.15, 253.15, 258.15, 273.15, 283.15, 293.15, 298.15];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/satellite/atms/';
 height = [];
-name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=13)', 'brightness temperature [K](channel=14)'];
-stepValueForColor = [1.0, 1.0, 1.0, 1.0];
-numberOfStepForColor = [60, 60, 60, 60];
-startValueForColor = [153.15, 153.15, 233.15, 233.15];
-startColor = ['blue', 'blue', 'blue', 'blue'];
-hslHueAngle = [-300, -300, -300, -300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
+name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=3)', 'brightness temperature [K](channel=4)', 'brightness temperature [K](channel=5)', 'brightness temperature [K](channel=6)', 'brightness temperature [K](channel=7)', 'brightness temperature [K](channel=8)', 'brightness temperature [K](channel=9)', 'brightness temperature [K](channel=10)', 'brightness temperature [K](channel=11)', 'brightness temperature [K](channel=12)', 'brightness temperature [K](channel=13)', 'brightness temperature [K](channel=14)', 'brightness temperature [K](channel=15)'];
+valueForMinColor = [133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15];
+valueForMaxColor = [313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
+
+categoryPath = 'bufr_to_arrow/satellite/csr/';
+height = [];
+name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=3)', 'brightness temperature [K](channel=4)', 'brightness temperature [K](channel=5)', 'brightness temperature [K](channel=6)', 'brightness temperature [K](channel=7)', 'brightness temperature [K](channel=8)', 'brightness temperature [K](channel=9)', 'brightness temperature [K](channel=10)', 'brightness temperature [K](channel=11)', 'brightness temperature [K](channel=12)', 'brightness temperature [K](channel=13)', 'brightness temperature [K](channel=14)', 'brightness temperature [K](channel=15)'];
+valueForMinColor = [253.15, 213.15, 233.15, 233.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15];
+valueForMaxColor = [313.15, 273.15, 293.15, 293.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 categoryPath = 'bufr_to_arrow/satellite/cris/';
 height = [];
-name = ['brightness temperature [K](channel=1)', 'brightness temperature [K](channel=2)', 'brightness temperature [K](channel=9)', 'brightness temperature [K](channel=10)'];
-stepValueForColor = [1.0, 1.0, 1.0, 1.0];
-numberOfStepForColor = [40, 40, 40, 40];
-startValueForColor = [263.15, 223.15, 263.15, 253.15];
-startColor = ['blue', 'blue', 'blue', 'blue'];
-hslHueAngle = [-300, -300, -300, -300];
-datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, stepValueForColor:stepValueForColor, numberOfStepForColor:numberOfStepForColor, startValueForColor:startValueForColor, startColor:startColor, hslHueAngle:hslHueAngle});
-
+name = ['radiance [W m-2 sr-1 cm](channel=1)', 'radiance [W m-2 sr-1 cm](channel=2)', 'radiance [W m-2 sr-1 cm](channel=3)', 'radiance [W m-2 sr-1 cm](channel=4)', 'radiance [W m-2 sr-1 cm](channel=5)', 'radiance [W m-2 sr-1 cm](channel=6)', 'radiance [W m-2 sr-1 cm](channel=7)', 'radiance [W m-2 sr-1 cm](channel=8)', 'radiance [W m-2 sr-1 cm](channel=9)', 'radiance [W m-2 sr-1 cm](channel=10)', 'radiance [W m-2 sr-1 cm](channel=11)', 'radiance [W m-2 sr-1 cm](channel=12)', 'radiance [W m-2 sr-1 cm](channel=13)', 'radiance [W m-2 sr-1 cm](channel=14)', 'radiance [W m-2 sr-1 cm](channel=15)'];
+valueForMinColor = [0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000];
+valueForMaxColor = [0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 </script>
 <style>
 .table {width:100%;}
@@ -179,12 +143,12 @@ datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height
 .deckglViewerHeader {width:360px;padding:1px;}
 .deckglViewerBig {height:520px;width:520px;padding:1px;border:1px dotted;}
 .deckglViewerSmall {height:360px;width:360px;padding:1px;border:1px dotted;}
-.deckglViewerFooter {width:360px;padding:1px;}
+.deckglViewerFooter {height:360px;width:360px;padding:1px;}
 perspective-viewer {height:520px;width:1040px;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>PointCloud(threshold)</option><option>ScreenGrid(sum points)</option> --></select> clear<input type='checkbox' id='clearMode' checked></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='viewerType'><option>Map</option><option>Globe</option></select><select id='layerType'><option>PointCloud</option><!-- <option>PointCloud(threshold)</option><option>ScreenGrid(sum points)</option> --></select> clear<input type='checkbox' id='clearMode' checked> legend<input type='checkbox' id='legendMode'></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
 <div claas='table' id='deckglViewers'></div>
 </body>
