@@ -341,11 +341,11 @@ async function setPerspective(tables){
       perspectiveViewerConfig = await perspectiveViewerElem.save();
     });
     perspectiveViewerElem.toggleConfig(true);
-    let perspectiveTableView = await perspectiveTable.view();
-    for (let name of await perspectiveTable.columns()) {
-      let min_max = await perspectiveTableView.get_min_max(name)
-      console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
-    }
+    //let perspectiveTableView = await perspectiveTable.view();
+    //for (let name of await perspectiveTable.columns()) {
+    //  let min_max = await perspectiveTableView.get_min_max(name)
+    //  console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
+    //}
   }
 }
 
