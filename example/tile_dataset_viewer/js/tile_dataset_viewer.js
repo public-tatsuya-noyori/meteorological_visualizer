@@ -9,6 +9,8 @@ let perspectiveViewerConfig = undefined;
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
 let tables = [];
+let deckglViewersLimitNum = 15;
+let pageNum = 0;
 
 document.addEventListener('DOMContentLoaded',async () => {
   initialize();
@@ -18,6 +20,14 @@ async function initialize(){
   let inputElem = document.getElementById('legendMode');
   inputElem.addEventListener('change', async () => {
     setLegend();
+  });
+  inputElem = document.getElementById('next');
+  inputElem.addEventListener('click', async () => {
+    setNext();
+  });
+  inputElem = document.getElementById('previous');
+  inputElem.addEventListener('click', async () => {
+    setPrevious();
   });
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
@@ -68,6 +78,7 @@ async function setLayerType(){
 }
 
 async function setCategorySelectors(selectedLevel){
+  pageNum = 0;
   let inputElem = document.getElementById('clearMode');
   inputElem.checked = true;
   inputElem = document.getElementById('legendMode');
@@ -124,7 +135,10 @@ async function setDeckglViewers(){
     selectElem.selectedIndex = 0;
   }
   let configNames = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length)).name
-  let numberOfConfigDeckglViewer = configNames.length;
+  let numberOfConfigDeckglViewer = configNames.length - deckglViewersLimitNum * pageNum;
+  if (numberOfConfigDeckglViewer > deckglViewersLimitNum) {
+    numberOfConfigDeckglViewer = deckglViewersLimitNum;
+  }
   let numberOfDeckglViewer = deckglViewers.length;
   if (numberOfDeckglViewer > numberOfConfigDeckglViewer) {
     for (let deckglViewerIndex = numberOfConfigDeckglViewer; deckglViewerIndex < numberOfDeckglViewer; deckglViewerIndex++) {
@@ -154,7 +168,7 @@ async function setDeckglViewers(){
       let deckglViewerHeaderElem = document.createElement('div');
       deckglViewerHeaderElem.className = 'deckglViewerHeader';
       deckglViewerHeaderElem.setAttribute('id', ['deckglViewerHeader', deckglViewerIndex].join(''));
-      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex];
+      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.createElement('div');
       if (viewerType == 'Globe') {
@@ -195,8 +209,7 @@ async function setDeckglViewers(){
         deckglViewers[deckglViewerIndex].setProps({views:new deck.MapView({repeat:true})});
       }
       let deckglViewerHeaderElem = document.getElementById(['deckglViewerHeader', deckglViewerIndex].join(''));
-
-      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex];
+      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.getElementById(['deckglViewer', deckglViewerIndex].join(''));
       if (viewerType == 'Globe') {
@@ -359,10 +372,27 @@ async function setDeckglLayers(tables){
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  for (let [deckglViewerIndex, name] of config['name'].entries()) {
+  let pageLength = config.name.length - deckglViewersLimitNum * pageNum;
+  if (pageLength > deckglViewersLimitNum) {
+    pageLength = deckglViewersLimitNum;
+    let inputElem = document.getElementById('next');
+    inputElem.type = 'button';
+  } else {
+    let inputElem = document.getElementById('next');
+    inputElem.type = 'hidden';
+  }
+  if (pageNum > 0) {
+    let inputElem = document.getElementById('previous');
+    inputElem.type = 'button';
+  } else {
+    let inputElem = document.getElementById('previous');
+    inputElem.type = 'hidden';
+  }
+  for (let configIndex = deckglViewersLimitNum * pageNum; configIndex < pageLength + deckglViewersLimitNum * pageNum; configIndex++) {
     let layers = [];
-    let valueForMinColor = config['valueForMinColor'][deckglViewerIndex];
-    let valueForMaxColor = config['valueForMaxColor'][deckglViewerIndex];
+    let name = config['name'][configIndex];
+    let valueForMinColor = config['valueForMinColor'][configIndex];
+    let valueForMaxColor = config['valueForMaxColor'][configIndex];
     let colorScaleDomain = [];
     for (let i = 0; i < colorScaleRange.length - 1; i++) {
       colorScaleDomain.push(valueForMinColor + ((valueForMaxColor - valueForMinColor) / (colorScaleRange.length)) * i)
@@ -457,7 +487,7 @@ async function setDeckglLayers(tables){
       }
     });
     layers.push(mapGeoJsonLayer.clone());
-    deckglViewers[deckglViewerIndex].setProps({layers: layers});
+    deckglViewers[configIndex - deckglViewersLimitNum * pageNum].setProps({layers: layers});
   }
 }
 
@@ -483,4 +513,18 @@ async function setLegend(){
       d3.select(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).call(d3.legendColor().labels(d3.legendHelpers.thresholdLabels).scale(colorScale));
     }
   }
+}
+
+async function setNext(){
+  pageNum = pageNum + 1;
+  await clearDeckglLayers();
+  await setDeckglViewers();
+  await setDeckglLayers(tables);
+}
+
+async function setPrevious(){
+  pageNum = pageNum - 1;
+  await clearDeckglLayers();
+  await setDeckglViewers();
+  await setDeckglLayers(tables);
 }
