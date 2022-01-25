@@ -315,6 +315,9 @@ async function getTables(){
 }
 
 async function setPerspective(tables){
+  if (tables.length == 0) {
+    alert('No data');
+  }
   let perspectiveTableSchema = {};
   tables.forEach((table) => {
     let tableColumnNames = table.schema.fields.map((d) => d.name);
