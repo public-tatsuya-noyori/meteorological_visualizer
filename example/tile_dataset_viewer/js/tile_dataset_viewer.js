@@ -171,11 +171,7 @@ async function setDeckglViewers(){
       deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.createElement('div');
-      if (viewerType == 'Globe') {
-        deckglViewerElem.className = 'deckglViewerSmall';
-      } else {
-        deckglViewerElem.className = 'deckglViewerBig';
-      }
+      deckglViewerElem.className = 'deckglViewer';
       deckglViewerElem.style.visibility = 'visible';
       deckglViewerElem.setAttribute('id', ['deckglViewer', deckglViewerIndex].join(''));
       let tdElem = document.createElement('div');
@@ -212,11 +208,7 @@ async function setDeckglViewers(){
       deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.getElementById(['deckglViewer', deckglViewerIndex].join(''));
-      if (viewerType == 'Globe') {
-        deckglViewerElem.className = 'deckglViewerSmall';
-      } else {
-        deckglViewerElem.className = 'deckglViewerBig';
-      }
+      deckglViewerElem.className = 'deckglViewer';
       deckglViewerElem.style.visibility = 'visible';
     }
   }
@@ -416,7 +408,14 @@ async function setDeckglLayers(tables){
             let row = data.src.get(index);
             target[0] = row.get('longitude [degree]');
             target[1] = row.get('latitude [degree]');
-            target[2] = 0;
+            target[2] = 0.0;
+            if (config['height'].length != 0) {
+              config['height'].forEach(heightName => {
+                if (row.get(heightName) != null) {
+                  target[2] = row.get(heightName) * config['heightMultiply'];
+                }
+              })
+            }
             return target;
           },
           getColor: (object, {index, data}) => {
