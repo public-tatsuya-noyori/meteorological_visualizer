@@ -37,13 +37,13 @@ const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: t
 const numberOfConfigDeckglViewersTableTd = 2;
 let datasetCategoryPathConfigMap = new Map();
 let categoryPath, name, height, stepValueForColor, numberOfStepForColor, startColor, hslHueAngle, configTable;
-let filter = [];
-//let filter = ['l1x2y0', 'l1x2y1', 'l1x3y0', 'l1x3y1', 
-//              'l2x5y0', 'l2x6y0', 'l2x7y0', 'l2x5y1', 'l2x6y1', 'l2x7y1', 'l2x5y2', 'l2x6y2', 'l2x7y2',
-//              'l3x9y1', 'l3x10y1', 'l3x11y1', 'l3x12y1', 'l3x13y1', 'l3x14y1',
-//              'l3x9y2', 'l3x10y2', 'l3x11y2', 'l3x12y2', 'l3x13y2', 'l3x14y2',
-//              'l3x9y3', 'l3x10y3', 'l3x11y3', 'l3x12y3', 'l3x13y3', 'l3x14y3',
-//              'l3x9y4', 'l3x10y4', 'l3x11y4', 'l3x12y4', 'l3x13y4', 'l3x14y4'];
+//let filter = [];
+let filter = ['l1x2y0', 'l1x2y1', 'l1x3y0', 'l1x3y1', 
+              'l2x5y0', 'l2x6y0', 'l2x7y0', 'l2x5y1', 'l2x6y1', 'l2x7y1', 'l2x5y2', 'l2x6y2', 'l2x7y2',
+              'l3x9y1', 'l3x10y1', 'l3x11y1', 'l3x12y1', 'l3x13y1', 'l3x14y1',
+              'l3x9y2', 'l3x10y2', 'l3x11y2', 'l3x12y2', 'l3x13y2', 'l3x14y2',
+              'l3x9y3', 'l3x10y3', 'l3x11y3', 'l3x12y3', 'l3x13y3', 'l3x14y3',
+              'l3x9y4', 'l3x10y4', 'l3x11y4', 'l3x12y4', 'l3x13y4', 'l3x14y4'];
 
 categoryPath = 'bufr_to_arrow/ocean/float/';
 height = ['water pressure [Pa]'];
