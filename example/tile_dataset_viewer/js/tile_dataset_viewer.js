@@ -17,7 +17,11 @@ document.addEventListener('DOMContentLoaded',async () => {
 });
 
 async function initialize(){
-  let inputElem = document.getElementById('legendMode');
+  let inputElem = document.getElementById('tableMode');
+  inputElem.addEventListener('change', async () => {
+    setTable();
+  });
+  inputElem = document.getElementById('legendMode');
   inputElem.addEventListener('change', async () => {
     setLegend();
   });
@@ -258,10 +262,9 @@ async function setDatetimeSelectors(selectedLevel){
   }
   datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
   await clearDeckglLayers();
-  await clearPerspective();
   tables = await getTables();
-  await setPerspective(tables);
   await setDeckglLayers(tables);
+  setTable();
 }
 
 async function clearDeckglLayers(){
@@ -273,7 +276,7 @@ async function clearDeckglLayers(){
 async function clearPerspective(){
   if (perspectiveTable != undefined) {
     await perspectiveTable.clear();
-    perspectiveTable = undefined;  
+    perspectiveTable = undefined;
   }
   let perspectiveViewerElemVisibility = perspectiveViewerElem.style.visibility;
   let perspectiveViewerElemHeight = perspectiveViewerElem.style.height;
@@ -511,7 +514,7 @@ async function setLegend(){
     let inputElem = document.getElementById('legendMode');
     d3.selectAll(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).remove();
     if (inputElem.checked) {
-      d3.select(['#', 'deckglViewerHeader', deckglViewerIndex].join('')).append('svg').attr('viewBox', '0 0 360 300').attr('id', ['deckglViewerHeader', deckglViewerIndex, 'Svg'].join(''));
+      d3.select(['#', 'deckglViewerHeader', deckglViewerIndex].join('')).append('svg').attr('viewBox', '0 0 600 300').attr('id', ['deckglViewerHeader', deckglViewerIndex, 'Svg'].join(''));
       d3.select(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).call(d3.legendColor().labels(d3.legendHelpers.thresholdLabels).scale(colorScale));
     }
   }
@@ -529,4 +532,17 @@ async function setPrevious(){
   await clearDeckglLayers();
   await setDeckglViewers();
   await setDeckglLayers(tables);
+}
+
+async function setTable(){
+  let inputElem = document.getElementById('tableMode');
+  if (inputElem.checked) {
+    perspectiveViewerElem.style.visibility = 'visible';
+    perspectiveViewerElem.style.height = '480px';
+    await setPerspective(tables);
+  } else {
+    perspectiveViewerElem.style.visibility = 'hidden';
+    perspectiveViewerElem.style.height = '0px';
+    await clearPerspective();
+  }
 }
