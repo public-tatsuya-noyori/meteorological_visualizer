@@ -318,9 +318,6 @@ async function getTables(){
 }
 
 async function setPerspective(tables){
-  if (tables.length == 0) {
-    alert('No data');
-  }
   let perspectiveTableSchema = {};
   tables.forEach((table) => {
     let tableColumnNames = table.schema.fields.map((d) => d.name);
@@ -361,6 +358,9 @@ async function setPerspective(tables){
 }
 
 async function setDeckglLayers(tables){
+  if (tables.length == 0) {
+    alert('No data');
+  }
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
@@ -437,37 +437,10 @@ async function setDeckglLayers(tables){
             }
           }
         });
-      } else if (layerType == 'PointCloud(threshold)') {
-        layer = new deck.PointCloudLayer({
-          id: [name, '_', tableIndex].join(''),
-          pointSize: 3,
-          material: false,
-          data: {src: table, length: table.count()},
-          getPosition: (object, {index, data, target}) => {
-            let row = data.src.get(index);
-            target[0] = row.get('longitude [degree]');
-            target[1] = row.get('latitude [degree]');
-            target[2] = 0;
-            return target;
-          },
-          getColor: (object, {index, data}) => {
-            if (tableColumnNames.indexOf(name) < 0) {
-              return [0, 0, 0];
-            }
-            let value = data.src.get(index).get(name);
-            if (value == null) {
-              return [0, 0, 0];
-            } else {
-              let rgb = d3.rgb(colorScale(Math.round(value/stepValueForColor) * stepValueForColor));
-              return [rgb.r, rgb.g, rgb.b];  
-            }
-          }
-        });
       } else if (layerType == 'ScreenGrid(sum points)') {
         layer = new deck.ScreenGridLayer({
           id: [name, '_', tableIndex].join(''),
-          opacity: 0.8,
-          cellSizePixels: 6,
+          cellSizePixels: 5,
           data: {src: table, length: table.count()},
           getPosition: (object, {index, data, target}) => {
             let row = data.src.get(index);
