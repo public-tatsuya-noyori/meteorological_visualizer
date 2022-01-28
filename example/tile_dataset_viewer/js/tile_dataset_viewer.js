@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded',async () => {
 async function initialize(){
   let inputElem = document.getElementById('tableMode');
   inputElem.addEventListener('change', async () => {
-    setTable();
+    setPerspective();
   });
   inputElem = document.getElementById('legendMode');
   inputElem.addEventListener('change', async () => {
@@ -263,8 +263,11 @@ async function setDatetimeSelectors(selectedLevel){
   datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
   await clearDeckglLayers();
   tables = await getTables();
+  if (tables.length == 0) {
+    alert('No data');
+  }
   await setDeckglLayers(tables);
-  setTable();
+  setPerspective();
 }
 
 async function clearDeckglLayers(){
@@ -317,7 +320,7 @@ async function getTables(){
   return tables;
 }
 
-async function setPerspective(tables){
+async function setPerspectiveTable(tables){
   let perspectiveTableSchema = {};
   tables.forEach((table) => {
     let tableColumnNames = table.schema.fields.map((d) => d.name);
@@ -358,9 +361,6 @@ async function setPerspective(tables){
 }
 
 async function setDeckglLayers(tables){
-  if (tables.length == 0) {
-    alert('No data');
-  }
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
@@ -507,12 +507,12 @@ async function setPrevious(){
   await setDeckglLayers(tables);
 }
 
-async function setTable(){
+async function setPerspective(){
   let inputElem = document.getElementById('tableMode');
   if (inputElem.checked) {
     perspectiveViewerElem.style.visibility = 'visible';
-    perspectiveViewerElem.style.height = '480px';
-    await setPerspective(tables);
+    perspectiveViewerElem.style.height = '600px';
+    await setPerspectiveTable(tables);
   } else {
     perspectiveViewerElem.style.visibility = 'hidden';
     perspectiveViewerElem.style.height = '0px';
