@@ -11,6 +11,7 @@ let perspectiveTable = undefined;
 let tables = [];
 let deckglViewersLimitNum = 15;
 let pageNum = 0;
+let parallel = 4;
 
 document.addEventListener('DOMContentLoaded',async () => {
   initialize();
@@ -302,20 +303,40 @@ async function getTables(){
   do {
     response = await s3.makeUnauthenticatedRequest('listObjectsV2', params).promise();
     response.Contents.forEach(content => {
-      files.push(content.Key.replace(datasetPath, ''));
+      let file = content.Key.replace(datasetPath, '');
+      if (config['filter'].length == 0 || config['filter'].indexOf(file.split('.')[0]) > -1) {
+        files.push(file);
+      }
     });
     if (response.IsTruncated) {
       params.ContinuationToken = response.NextContinuationToken;
     }
   } while (response.IsTruncated);
-  for (let file of files) {
-    if (config['filter'].length == 0 || config['filter'].indexOf(file.split('.')[0]) > -1) {
-      let response = await fetch([endpoint, bucket, '/', datasetPath, file].join(''));
-      if (!response.ok) {
-        continue
+  if (files.length > 0) {
+    let workers = [];
+    for (let j = 0; j < parallel; j++) {
+      let sliced_files = [];
+      for (let i = 0; i * parallel + j < files.length; i++) {
+        sliced_files.push(files[i * parallel + j]);
       }
-      tables.push(Arrow.Table.from(await response.arrayBuffer()));
+      if (sliced_files.length > 0) {
+        workers.push(fetchTables(sliced_files));
+      }
     }
+    let parallel_tables = await Promise.all(workers);
+    tables = tables.concat(parallel_tables.flat(2));
+  }
+  return tables;
+}
+
+async function fetchTables(files) {
+  let tables = [];
+  for (let file of files) {
+    let response = await fetch([endpoint, bucket, '/', datasetPath, file].join(''));
+    if (!response.ok) {
+      continue
+    }
+    tables.push(await Arrow.Table.from(await response.arrayBuffer()));
   }
   return tables;
 }

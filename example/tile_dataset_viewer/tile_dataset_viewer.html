@@ -5,8 +5,8 @@
 <title>tile dataset viewer</title>
 <script src='https://unpkg.com/apache-arrow@latest/Arrow.es2015.min.js'></script>
 <!-- <script src='https://cdn.jsdelivr.net/npm/apache-arrow@latest/Arrow.es2015.min.js'></script> -->
-<link href='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/material-dense.css' rel='stylesheet'/>
-<!-- <link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/material-dense.css' rel='stylesheet'/> -->
+<link href='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/material.css' rel='stylesheet'/>
+<!-- <link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/material.css' rel='stylesheet'/> -->
 <script src='https://unpkg.com/@finos/perspective@latest/dist/umd/perspective.js'></script>
 <!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective@latest/dist/umd/perspective.js'></script> -->
 <script src='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/perspective-viewer.js'></script>
@@ -162,7 +162,7 @@ height = [];
 heightMultiply = 100.0;
 name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'relative humidity [%]', 'wind speed [m s-1]', 'wind direction [degree]', 'total cloud cover [%]'];
 valueForMinColor = [104000.0, 253.15, 5.0, 0.0, 30.0, 5.0];
-valueForMaxColor = [96000.0, 313.15, 95.0, 60.0, 390.0, 95.0];
+valueForMaxColor = [96000.0, 313.15, 95.0, 30.0, 390.0, 95.0];
 for (let i = 0; i <= 132; i = i + 3) {
   categoryPath = 'gsm_grib_to_arrow/surface/' + String(i).padStart(4, '0') + '/';
   datasetCategoryPathConfigMap.set(categoryPath, {name:name, filter:filter, height:height, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
