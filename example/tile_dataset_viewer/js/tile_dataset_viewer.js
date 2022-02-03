@@ -1,6 +1,6 @@
 const perspectiveWorker = perspective.worker();
 let categorySelectedTextMap = new Map(), maxCategoryLevel = 3;
-let datetimeSelectedTextMap = new Map(), maxDatetimeLevel = 2;
+let datetimeSelectedTextMap = new Map(), maxDatetimeLevel = 3;
 let datasetCategoryPath = '', datasetPath = '';
 let deckglViewers = [];
 let deckglViewersViewState = undefined;
@@ -220,6 +220,17 @@ async function setDeckglViewers(){
 }
 
 async function setDatetimeSelectors(selectedLevel){
+  let datetimeLevel = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length)).datetimeLevel;
+  if (datetimeLevel < maxDatetimeLevel) {
+    let selectElem = document.getElementById(['datetime', maxDatetimeLevel].join(''));
+    selectElem.textContent = null;
+    selectElem.style.visibility = 'hidden';
+    selectElem.style.width = '0px';
+  } else {
+    let selectElem = document.getElementById(['datetime', maxDatetimeLevel].join(''));
+    selectElem.style.visibility = 'visible';
+    selectElem.style.width = null;
+  }
   let isDatetimeSelected = true;
   if (selectedLevel == -1) {
     selectedLevel = 0;
@@ -231,7 +242,7 @@ async function setDatetimeSelectors(selectedLevel){
       path = [path, datetimeSelectedTextMap.get(level - 1)].join('');
     }
   }
-  for (let level = selectedLevel; level <= maxDatetimeLevel; level++) {
+  for (let level = selectedLevel; level <= datetimeLevel; level++) {
     let selectElem = document.getElementById(['datetime', level].join(''));
     let formerSelectedText = '';
     if (selectElem.selectedIndex > -1) {
@@ -261,7 +272,7 @@ async function setDatetimeSelectors(selectedLevel){
     }
     datetimeSelectedTextMap.set(level, selectElem.options[selectElem.selectedIndex].text);
   }
-  datasetPath = [path, datetimeSelectedTextMap.get(maxDatetimeLevel)].join('');
+  datasetPath = [path, datetimeSelectedTextMap.get(datetimeLevel)].join('');
   await clearDeckglLayers();
   tables = await getTables();
   if (tables.length == 0) {
