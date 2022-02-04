@@ -174,26 +174,37 @@ categoryPath = 'analysis_forecast/gsm/surface/';
 datetimeLevel = 3;
 height = [];
 heightMultiply = 100.0;
-name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'relative humidity [%]', 'wind speed [m s-1]', 'wind direction [degree]', 'total cloud cover [%]'];
-valueForMinColor = [105000.0, 253.15, 5.0, 0.0, 30.0, 5.0];
-valueForMaxColor = [96000.0, 313.15, 95.0, 30.0, 390.0, 95.0];
+name = ['pressure reduced to mean sea level [Pa]', 'air temperature [K]', 'relative humidity [%]', 'wind speed [m s-1]', 'wind direction [degree]', 'total cloud cover [%]', 'total precipitation [kg m-2](hour=3)'];
+valueForMinColor = [105000.0, 253.15, 5.0, 0.0, 30.0, 5.0, 2.0];
+valueForMaxColor = [96000.0, 313.15, 95.0, 30.0, 390.0, 95.0, 26.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, height:height, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
+
+categoryPath = 'analysis_forecast/gsm/upper_air/';
+idColumnFilter = ['1000hPa', '975hPa', '950hPa', '925hPa', '900hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa', '100hPa', '70hPa', '50hPa', '30hPa', '20hPa', '10hPa'];
+datetimeLevel = 3;
+height = ['geopotential height [m]'];
+heightMultiply = 100.0;
+name = ['geopotential height [m]', 'air temperature [K]', 'relative humidity [%]', 'wind speed [m s-1]', 'wind direction [degree]'];
+valueForMinColor = [0.0, 253.15, 5.0, 0.0, 30.0];
+valueForMaxColor = [36000.0, 313.15, 95.0, 30.0, 390.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, idColumnFilter:idColumnFilter, datetimeLevel:datetimeLevel, filter:filter, height:height, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
 </script>
 <style>
 .table {width:100%;}
 .tr {display:table;}
 .td {display:table-cell;}
-.deckglViewerHeader {width:600px;padding:1px;}
-.deckglViewer {height:600px;width:600px;padding:1px;border:1px dotted;}
-perspective-viewer {height:0px;width:1200px;visibility:hidden;}
-.datetime3 {width:0px;visibility:hidden}
+.deckglViewerHeader {width:640px;padding:1px;}
+.deckglViewer {height:640px;width:640px;padding:1px;border:1px dotted;}
+.datetime3 {width:0px;visibility:hidden;}
+.idColumnFilter {height:0px;width:0px;visibility:hidden;}
+perspective-viewer {height:0px;width:1280px;visibility:hidden;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select><select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option><!-- <option>ScreenGrid(sum points)</option> --></select> table<input type='checkbox' id='tableMode'> legend<input type='checkbox' id='legendMode'> clear<input type='checkbox' id='clearMode' checked></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input type='checkbox' id='tableMode'> clear<input type='checkbox' id='clearMode' checked></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
-<input type='hidden' value='previous' id='previous'> <input type='hidden' value='next' id='next'>
+<select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option><!-- <option>ScreenGrid(sum points)</option> --></select> legend<input type='checkbox' id='legendMode'> <select id='idColumnFilter'></select> <input type='hidden' value='previous' id='previous'> <input type='hidden' value='next' id='next'>
 <div claas='table' id='deckglViewers'></div>
 </body>
 </html>
