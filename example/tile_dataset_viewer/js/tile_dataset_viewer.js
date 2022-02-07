@@ -28,11 +28,17 @@ async function initialize(){
   });
   inputElem = document.getElementById('next');
   inputElem.addEventListener('click', async () => {
-    setNext();
+    pageNum = pageNum + 1;
+    await clearDeckglLayers();
+    await setDeckglViewers();
+    await setDeckglLayers();
   });
   inputElem = document.getElementById('previous');
   inputElem.addEventListener('click', async () => {
-    setPrevious();
+    pageNum = pageNum - 1;
+    await clearDeckglLayers();
+    await setDeckglViewers();
+    await setDeckglLayers();
   });
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
@@ -60,7 +66,7 @@ async function initialize(){
   selectElem = document.getElementById('idColumnFilter');
   selectElem.addEventListener('change', async () => {
     await clearDeckglLayers();
-    await setDeckglLayers();  
+    await setDeckglLayers();
   });
   await setCategorySelectors(0);
 }
@@ -128,7 +134,7 @@ async function setCategorySelectors(selectedLevel){
 }
 
 async function setDeckglViewers(){
-  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
   let idColumnFilter = config.idColumnFilter;
   if (idColumnFilter == undefined) {
     let selectElem = document.getElementById('idColumnFilter');
@@ -160,7 +166,7 @@ async function setDeckglViewers(){
     viewerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  let configNames = config.name
+  let configNames = config.name;
   let numberOfConfigDeckglViewer = configNames.length - deckglViewersLimitNum * pageNum;
   if (numberOfConfigDeckglViewer > deckglViewersLimitNum) {
     numberOfConfigDeckglViewer = deckglViewersLimitNum;
@@ -403,14 +409,14 @@ async function setPerspectiveTable(){
     perspectiveViewerElem.toggleConfig(true);
     //let perspectiveTableView = await perspectiveTable.view();
     //for (let name of await perspectiveTable.columns()) {
-    //  let min_max = await perspectiveTableView.get_min_max(name)
+    //  let min_max = await perspectiveTableView.get_min_max(name);
     //  console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
     //}
   }
 }
 
 async function setDeckglLayers(){
-  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length))
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
   if (selectElem.selectedIndex > -1) {
@@ -419,21 +425,13 @@ async function setDeckglLayers(){
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
+  let filterId = undefined;
   let idColumnFilter = config.idColumnFilter;
-  let deckglTables = [];
   if (idColumnFilter != undefined) {
     selectElem = document.getElementById('idColumnFilter');
     if (selectElem.selectedIndex > 0) {
-//      let filterId = selectElem.options[selectElem.selectedIndex].text;
-//      for (let table of tables) {
-//        deckglTables.push(table.filter(Arrow.predicate.col('id').eq(filterId)));
-//      }
-      deckglTables = tables;
-    } else {
-      deckglTables = tables;
+      filterId = selectElem.options[selectElem.selectedIndex].text;
     }
-  } else {
-    deckglTables = tables;
   }
   let pageLength = config.name.length - deckglViewersLimitNum * pageNum;
   if (pageLength > deckglViewersLimitNum) {
@@ -458,7 +456,7 @@ async function setDeckglLayers(){
     let valueForMaxColor = config['valueForMaxColor'][configIndex];
     let colorScaleDomain = [];
     for (let i = 0; i < colorScaleRange.length - 1; i++) {
-      colorScaleDomain.push(valueForMinColor + ((valueForMaxColor - valueForMinColor) / (colorScaleRange.length)) * i)
+      colorScaleDomain.push(valueForMinColor + ((valueForMaxColor - valueForMinColor) / (colorScaleRange.length)) * i);
     }
     let colorScale = [];
     if (valueForMinColor < valueForMaxColor) {
@@ -466,69 +464,37 @@ async function setDeckglLayers(){
     } else {
       colorScale = d3.scaleThreshold().domain(colorScaleDomain.reverse()).range(colorScaleRangeReverse);
     }
-    tables.forEach((table, tableIndex) => {
+    for (let [tableIndex, table] of tables.entries()) {
       let tableColumnNames = table.schema.fields.map((d) => d.name);
-      let layer = undefined;
       if (layerType == 'PointCloud') {
-        layer = new deck.PointCloudLayer({
-          id: [name, '_', tableIndex].join(''),
-          pointSize: 3,
-          material: false,
-          data: {src: table, length: table.numRows},
-          getPosition: (object, {index, data, target}) => {
-            let row = data.src.get(index);
-            target[0] = row['longitude [degree]'];
-            target[1] = row['latitude [degree]'];
-            target[2] = 0.0;
-            if (config['height'].length != 0) {
-              config['height'].forEach(heightName => {
-                if (row[heightName] != null) {
-                  target[2] = row[heightName] * config['heightMultiply'];
-                }
-              })
+        if (tableColumnNames.indexOf(name) > 0) {
+          layers.push(new deck.PointCloudLayer({
+            id: [name, '_', tableIndex].join(''),
+            pointSize: 3,
+            material: false,
+            data: {src: table, length: table.numRows},
+            getColor: (object, {index, data}) => {
+              let rgb = d3.rgb(colorScale(data.src.get(index)[name]));
+              return new Uint8Array([rgb.r, rgb.g, rgb.b]);
+            },
+            getPosition: (object, {index, data}) => {
+              return new Float32Array([data.src.get(index)['longitude [degree]'], data.src.get(index)['latitude [degree]'], data.src.get(index)[config['heightName']] * config['heightMultiply']]);
             }
-            return target;
-          },
-          getColor: (object, {index, data}) => {
-            if (tableColumnNames.indexOf(name) < 0) {
-              return [0, 0, 0];
+          }));
+        } else {
+          layers.push(new deck.PointCloudLayer({
+            id: [name, '_', tableIndex].join(''),
+            pointSize: 3,
+            material: false,
+            data: {src: table, length: table.numRows},
+            getColor: new Uint8Array([0, 0, 0]),
+            getPosition: (object, {index, data}) => {
+              return new Float32Array([data.src.get(index)['longitude [degree]'], data.src.get(index)['latitude [degree]'], data.src.get(index)[config['heightName']] * config['heightMultiply']]);
             }
-            let value = data.src.get(index)[name];
-            if (value == null) {
-              return [0, 0, 0];
-            } else {
-              let rgb = d3.rgb(colorScale(value));
-              return [rgb.r, rgb.g, rgb.b];
-            }
-          }
-        });
-      } else if (layerType == 'ScreenGrid(sum points)') {
-        layer = new deck.ScreenGridLayer({
-          id: [name, '_', tableIndex].join(''),
-          cellSizePixels: 5,
-          data: {src: table, length: table.numRows},
-          getPosition: (object, {index, data, target}) => {
-            let row = data.src.get(index);
-            target[0] = row['longitude [degree]'];
-            target[1] = row['latitude [degree]'];
-            return target;
-          },
-          getWeight: (object, {index, data}) => {
-            if (tableColumnNames.indexOf(name) < 0) {
-              return 0;
-            }
-            if (data.src.get(index)[name] == null) {
-              return 0
-            }
-            return 1;
-          },
-          aggregation: 'SUM'
-        });
+          }));
+        }
       }
-      if (layer != undefined) {
-        layers.push(layer);
-      }
-    });
+    }
     layers.push(mapGeoJsonLayer.clone());
     deckglViewers[configIndex - deckglViewersLimitNum * pageNum].setProps({layers: layers});
   }
@@ -556,20 +522,6 @@ async function setLegend(){
       d3.select(['#', 'deckglViewerHeader', deckglViewerIndex, 'Svg'].join('')).call(d3.legendColor().labels(d3.legendHelpers.thresholdLabels).scale(colorScale));
     }
   }
-}
-
-async function setNext(){
-  pageNum = pageNum + 1;
-  await clearDeckglLayers();
-  await setDeckglViewers();
-  await setDeckglLayers();
-}
-
-async function setPrevious(){
-  pageNum = pageNum - 1;
-  await clearDeckglLayers();
-  await setDeckglViewers();
-  await setDeckglLayers();
 }
 
 async function setPerspective(){
