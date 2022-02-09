@@ -8,10 +8,10 @@ let perspectiveViewerElem = document.getElementsByTagName("perspective-viewer")[
 let perspectiveViewerConfig = undefined;
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
-let tables = [];
 let deckglViewersLimitNum = 15;
+let tables = [];
 let pageNum = 0;
-let parallel = 4;
+let parallel = 8;
 
 document.addEventListener('DOMContentLoaded',async () => {
   initialize();
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded',async () => {
 async function initialize(){
   let inputElem = document.getElementById('tableMode');
   inputElem.addEventListener('change', async () => {
-    setPerspective();
+    setPerspective(tables);
   });
   inputElem = document.getElementById('legendMode');
   inputElem.addEventListener('change', async () => {
@@ -31,14 +31,18 @@ async function initialize(){
     pageNum = pageNum + 1;
     await clearDeckglLayers();
     await setDeckglViewers();
-    await setDeckglLayers();
+    await setDeckglLayers(tables);
   });
   inputElem = document.getElementById('previous');
   inputElem.addEventListener('click', async () => {
     pageNum = pageNum - 1;
     await clearDeckglLayers();
     await setDeckglViewers();
-    await setDeckglLayers();
+    await setDeckglLayers(tables);
+  });
+  inputElem = document.getElementById('filterdTableToMapGlobe');
+  inputElem.addEventListener('click', async () => {
+    await setFilterdTableToMapGlobe();
   });
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
@@ -49,7 +53,7 @@ async function initialize(){
   selectElem.selectedIndex = 0;
   selectElem.addEventListener('change', async () => {
     await clearDeckglLayers();
-    await setDeckglLayers();
+    await setDeckglLayers(tables);
   });
   for (let level = 0; level <= maxCategoryLevel; level++) {
     selectElem = document.getElementById(['category', level].join(''));
@@ -65,8 +69,7 @@ async function initialize(){
   }
   selectElem = document.getElementById('idColumnFilter');
   selectElem.addEventListener('change', async () => {
-    await clearDeckglLayers();
-    await setDeckglLayers();
+    await setIdColumnFilter();
   });
   await setCategorySelectors(0);
 }
@@ -301,12 +304,12 @@ async function setDatetimeSelectors(selectedLevel){
   }
   datasetPath = [path, datetimeSelectedTextMap.get(datetimeLevel)].join('');
   await clearDeckglLayers();
-  tables = await getTables();
+  await getTables();
   if (tables.length == 0) {
     alert('No data');
   }
-  await setDeckglLayers();
-  setPerspective();
+  await setDeckglLayers(tables);
+  setPerspective(tables);
 }
 
 async function clearDeckglLayers(){
@@ -364,7 +367,6 @@ async function getTables(){
     let parallel_tables = await Promise.all(workers);
     tables = tables.concat(parallel_tables.flat(2));
   }
-  return tables;
 }
 
 async function fetchTables(sliced_files) {
@@ -375,9 +377,9 @@ async function fetchTables(sliced_files) {
   return sliced_tables;
 }
 
-async function setPerspectiveTable(){
+async function setPerspectiveTable(tableList){
   let perspectiveTableSchema = {};
-  tables.forEach((table) => {
+  tableList.forEach((table) => {
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
     table.schema.names.forEach((tableColumnName, tableColumnIndex) => {
       if (tableColumnTypes[tableColumnIndex].toString().indexOf('tf8') > -1) {
@@ -394,10 +396,12 @@ async function setPerspectiveTable(){
   if (Object.keys(perspectiveTableSchema).length > 0) {
     perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
     await perspectiveViewerElem.load(perspectiveTable);
-    for (let table of tables) {
+    for (let table of tableList) {
       await perspectiveTable.update(Arrow.tableToIPC(table).buffer);
     }
-    if (perspectiveViewerConfig != undefined) {
+    if (perspectiveViewerConfig == undefined) {
+      await perspectiveViewerElem.reset();
+    } else {
       await perspectiveViewerElem.restore(perspectiveViewerConfig);
     }
     perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
@@ -412,7 +416,7 @@ async function setPerspectiveTable(){
   }
 }
 
-async function setDeckglLayers(){
+async function setDeckglLayers(tableList){
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
@@ -421,14 +425,6 @@ async function setDeckglLayers(){
   } else {
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
-  }
-  let filterId = undefined;
-  let idColumnFilter = config.idColumnFilter;
-  if (idColumnFilter != undefined) {
-    selectElem = document.getElementById('idColumnFilter');
-    if (selectElem.selectedIndex > 0) {
-      filterId = selectElem.options[selectElem.selectedIndex].text;
-    }
   }
   let pageLength = config.name.length - deckglViewersLimitNum * pageNum;
   if (pageLength > deckglViewersLimitNum) {
@@ -461,7 +457,7 @@ async function setDeckglLayers(){
     } else {
       colorScale = d3.scaleThreshold().domain(colorScaleDomain.reverse()).range(colorScaleRangeReverse);
     }
-    for (let [tableIndex, table] of tables.entries()) {
+    for (let [tableIndex, table] of tableList.entries()) {
       if (layerType == 'PointCloud') {
         if (table.schema.names.indexOf(name) > 0) {
           layers.push(new deck.PointCloudLayer({
@@ -520,16 +516,43 @@ async function setLegend(){
   }
 }
 
-async function setPerspective(){
+async function setPerspective(tableList){
   let inputElem = document.getElementById('tableMode');
   if (inputElem.checked) {
     await clearPerspective();
     perspectiveViewerElem.style.visibility = 'visible';
     perspectiveViewerElem.style.height = '600px';
-    await setPerspectiveTable();
+    await setPerspectiveTable(tableList);
   } else {
     perspectiveViewerElem.style.visibility = 'hidden';
     perspectiveViewerElem.style.height = '0px';
     await clearPerspective();
   }
+}
+
+async function setIdColumnFilter(){
+  let inputElem = document.getElementById('tableMode');
+  if (!inputElem.checked) {
+    inputElem.checked = true;
+    await setPerspective(tables);  
+  }
+  let selectElem = document.getElementById('idColumnFilter');
+  if (selectElem.selectedIndex > 0) {
+    await perspectiveViewerElem.restore({filter: [['id', "==", selectElem.options[selectElem.selectedIndex].text]]});
+    await clearDeckglLayers();
+    await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: [['id', "==", selectElem.options[selectElem.selectedIndex].text]]})).to_arrow())]);
+  } else {
+    await clearDeckglLayers();
+    await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: (await perspectiveViewerElem.save()).filter})).to_arrow())]);
+  }
+}
+
+async function setFilterdTableToMapGlobe(){
+  let inputElem = document.getElementById('tableMode');
+  if (!inputElem.checked) {
+    inputElem.checked = true;
+    await setPerspective(tables);  
+  }
+  await clearDeckglLayers();
+  await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: (await perspectiveViewerElem.save()).filter})).to_arrow())]);
 }
