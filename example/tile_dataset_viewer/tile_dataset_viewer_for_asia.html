@@ -45,7 +45,7 @@ let filter = ['l1x2y0', 'l1x2y1', 'l1x3y0', 'l1x3y1',
               'l3x9y3', 'l3x10y3', 'l3x11y3', 'l3x12y3', 'l3x13y3', 'l3x14y3',
               'l3x9y4', 'l3x10y4', 'l3x11y4', 'l3x12y4', 'l3x13y4', 'l3x14y4'];
 
-categoryPath = 'bufr_to_arrow/ocean/float/';
+categoryPath = 'observation/ocean/float/';
 datetimeLevel = 2;
 heightName = 'water pressure [Pa]';
 heightMultiply = -0.1;
@@ -54,7 +54,7 @@ valueForMinColor = [0.0, 273.15, 32.0];
 valueForMaxColor = [24000000.0, 303.15, 38.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/surface/buoy/';
+categoryPath = 'observation/surface/buoy/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 0.0;
@@ -63,7 +63,7 @@ valueForMinColor = [105000.0, 278.15, 0.0, 30.0];
 valueForMaxColor = [96000.0, 308.15, 30.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/surface/gps_station/';
+categoryPath = 'observation/surface/gps_station/';
 datetimeLevel = 2;
 heightName = 'height of station [m]';
 heightMultiply = 100.0;
@@ -72,7 +72,7 @@ valueForMinColor = [0.0, 0.8, 0.0];
 valueForMaxColor = [6000.0, 3.2, 72.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/surface/ship/';
+categoryPath = 'observation/surface/ship/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 100.0;
@@ -81,7 +81,7 @@ valueForMinColor = [105000.0, 253.15, 253.15, 0.0, 30.0, 278.15];
 valueForMaxColor = [96000.0, 313.15, 313.15, 30.0, 390.0, 308.15];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/surface/weather_station/';
+categoryPath = 'observation/surface/weather_station/';
 datetimeLevel = 2;
 heightName = 'height of station ground above mean sea level [m]';
 heightMultiply = 100.0;
@@ -90,7 +90,7 @@ valueForMinColor = [0.0, 105000.0, 253.15, 253.15, 0.0, 30.0];
 valueForMaxColor = [6000.0, 96000.0, 313.15, 313.15, 30.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/upper_air/aircraft/';
+categoryPath = 'observation/upper_air/aircraft/';
 datetimeLevel = 2;
 heightName = 'flight level [m]';
 heightMultiply = 100.0;
@@ -99,7 +99,7 @@ valueForMinColor = [0.0, 183.15, 183.15, 0.0, 30.0];
 valueForMaxColor = [36000.0, 303.15, 303.15, 60.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/upper_air/profiler/';
+categoryPath = 'observation/upper_air/profiler/';
 datetimeLevel = 2;
 heightName = 'height [m]';
 heightMultiply = 100.0;
@@ -108,7 +108,7 @@ valueForMinColor = [0.0, 183.15, 0.0, 30.0];
 valueForMaxColor = [36000.0, 303.15, 60.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/upper_air/sonde/';
+categoryPath = 'observation/upper_air/sonde/';
 datetimeLevel = 2;
 heightName = 'geopotential height [m]';
 heightMultiply = 100.0;
@@ -117,7 +117,7 @@ valueForMinColor = [0.0, 120000.0, 183.15, 183.15, 0.0, 30.0];
 valueForMaxColor = [36000.0, 0.0,  303.15, 303.15, 60.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/upper_air/drop_sonde/';
+categoryPath = 'observation/upper_air/drop_sonde/';
 datetimeLevel = 2;
 heightName = 'geopotential height [m]';
 heightMultiply = 100.0;
@@ -126,7 +126,7 @@ valueForMinColor = [0.0, 120000.0, 183.15, 183.15, 0.0, 30.0];
 valueForMaxColor = [36000.0, 0.0,  303.15, 303.15, 60.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/satellite/amsua/';
+categoryPath = 'observation/satellite/amsua/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 100.0;
@@ -135,7 +135,7 @@ valueForMinColor = [133.15, 133.15, 193.15, 193.15, 213.15, 203.15, 203.15, 193.
 valueForMaxColor = [313.15, 313.15, 313.15, 313.15, 273.15, 263.15, 263.15, 253.15, 243.15, 253.15, 258.15, 273.15, 283.15, 293.15, 298.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/satellite/atms/';
+categoryPath = 'observation/satellite/atms/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 100.0;
@@ -144,7 +144,7 @@ valueForMinColor = [133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.15, 133.
 valueForMaxColor = [313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/satellite/csr/';
+categoryPath = 'observation/satellite/csr/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 100.0;
@@ -153,7 +153,7 @@ valueForMinColor = [253.15, 213.15, 233.15, 233.15, 133.15, 133.15, 133.15, 133.
 valueForMaxColor = [313.15, 273.15, 293.15, 293.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15, 313.15];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
-categoryPath = 'bufr_to_arrow/satellite/cris/';
+categoryPath = 'observation/satellite/cris/';
 datetimeLevel = 2;
 heightName = undefined;
 heightMultiply = 100.0;
