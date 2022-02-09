@@ -378,17 +378,14 @@ async function fetchTables(sliced_files) {
 async function setPerspectiveTable(){
   let perspectiveTableSchema = {};
   tables.forEach((table) => {
-    let tableColumnNames = table.schema.fields.map((d) => d.name);
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
-    tableColumnNames.forEach((tableColumnName, tableColumnIndex) => {
+    table.schema.names.forEach((tableColumnName, tableColumnIndex) => {
       if (tableColumnTypes[tableColumnIndex].toString().indexOf('tf8') > -1) {
         perspectiveTableSchema[tableColumnName] = 'string';
       } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('loat') > -1) {
         perspectiveTableSchema[tableColumnName] = 'float';
       } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('nt') > -1) {
-        if (perspectiveTableSchema[tableColumnName] == undefined || perspectiveTableSchema[tableColumnName] != 'float') {
-          perspectiveTableSchema[tableColumnName] = 'integer';
-        }
+        perspectiveTableSchema[tableColumnName] = 'integer';
       } else if (tableColumnTypes[tableColumnIndex].toString().indexOf('imestamp') > -1) {
         perspectiveTableSchema[tableColumnName] = 'datetime';
       }
@@ -465,9 +462,8 @@ async function setDeckglLayers(){
       colorScale = d3.scaleThreshold().domain(colorScaleDomain.reverse()).range(colorScaleRangeReverse);
     }
     for (let [tableIndex, table] of tables.entries()) {
-      let tableColumnNames = table.schema.fields.map((d) => d.name);
       if (layerType == 'PointCloud') {
-        if (tableColumnNames.indexOf(name) > 0) {
+        if (table.schema.names.indexOf(name) > 0) {
           layers.push(new deck.PointCloudLayer({
             id: [name, '_', tableIndex].join(''),
             pointSize: 3,
@@ -527,6 +523,7 @@ async function setLegend(){
 async function setPerspective(){
   let inputElem = document.getElementById('tableMode');
   if (inputElem.checked) {
+    await clearPerspective();
     perspectiveViewerElem.style.visibility = 'visible';
     perspectiveViewerElem.style.height = '600px';
     await setPerspectiveTable();
