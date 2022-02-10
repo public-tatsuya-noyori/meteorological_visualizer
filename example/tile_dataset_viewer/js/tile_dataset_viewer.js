@@ -303,9 +303,9 @@ async function setDatetimeSelectors(selectedLevel){
   if (tables.length == 0) {
     alert('No data');
   }
-  setDeckglLayers(tables);
   await setPerspectiveTable(tables);
   setPerspectiveViewer();
+  setDeckglLayers(tables);
 }
 
 async function clearDeckglLayers(){
@@ -387,7 +387,7 @@ async function setPerspectiveTable(tableList){
     await perspectiveViewerElem.reset();
     perspectiveViewerConfig.columns = Object.keys(perspectiveTableSchema);
     await perspectiveViewerElem.restore(perspectiveViewerConfig);
-    await Promise.all([updatePerspectiveTable(tables)]);
+    Promise.all([updatePerspectiveTable(tables)]);
   }
   perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
     perspectiveViewerConfig = await perspectiveViewerElem.save();
