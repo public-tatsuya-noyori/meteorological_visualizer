@@ -5,7 +5,7 @@ let datasetCategoryPath = '', datasetPath = '';
 let deckglViewers = [];
 let deckglViewersViewState = undefined;
 let perspectiveViewerElem = document.getElementsByTagName("perspective-viewer")[0];
-let perspectiveViewerConfig = undefined;
+let perspectiveViewerConfig = {};
 let perspectiveViewerDivElem = document.getElementById('perspectiveViewer');
 let perspectiveTable = undefined;
 let deckglViewersLimitNum = 15;
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded',async () => {
 async function initialize(){
   let inputElem = document.getElementById('tableMode');
   inputElem.addEventListener('change', async () => {
-    setPerspective(tables);
+    setPerspectiveViewer();
   });
   inputElem = document.getElementById('legendMode');
   inputElem.addEventListener('change', async () => {
@@ -39,10 +39,6 @@ async function initialize(){
     await clearDeckglLayers();
     await setDeckglViewers();
     await setDeckglLayers(tables);
-  });
-  inputElem = document.getElementById('filterdTableToMapGlobe');
-  inputElem.addEventListener('click', async () => {
-    await setFilterdTableToMapGlobe();
   });
   let selectElem = document.getElementById('viewerType');
   selectElem.selectedIndex = 0;
@@ -94,7 +90,6 @@ async function setCategorySelectors(selectedLevel){
   inputElem.checked = true;
   inputElem = document.getElementById('legendMode');
   inputElem.checked = false;
-  perspectiveViewerConfig = undefined;
   datasetCategoryPath = '';
   let path = '';
   for (let level = 1; level < selectedLevel; level++) {
@@ -308,29 +303,15 @@ async function setDatetimeSelectors(selectedLevel){
   if (tables.length == 0) {
     alert('No data');
   }
-  await setDeckglLayers(tables);
-  setPerspective(tables);
+  setDeckglLayers(tables);
+  await setPerspectiveTable(tables);
+  setPerspectiveViewer();
 }
 
 async function clearDeckglLayers(){
   deckglViewers.forEach(deckglViewer => {
     deckglViewer.setProps({layers: [mapGeoJsonLayer.clone()]});
   });
-}
-
-async function clearPerspective(){
-  if (perspectiveTable != undefined) {
-    await perspectiveTable.clear();
-    perspectiveTable = undefined;
-  }
-  let perspectiveViewerElemVisibility = perspectiveViewerElem.style.visibility;
-  let perspectiveViewerElemHeight = perspectiveViewerElem.style.height;
-  perspectiveViewerElem.remove();
-  perspectiveViewerElem = document.createElement('perspective-viewer');
-  perspectiveViewerElem.className = 'perspective-viewer-material';
-  perspectiveViewerDivElem.appendChild(perspectiveViewerElem);
-  perspectiveViewerElem.style.visibility = perspectiveViewerElemVisibility;
-  perspectiveViewerElem.style.height = perspectiveViewerElemHeight;
 }
 
 async function getTables(){
@@ -356,28 +337,35 @@ async function getTables(){
   if (files.length > 0) {
     let workers = [];
     for (let j = 0; j < parallel; j++) {
-      let sliced_files = [];
+      let slicedFiles = [];
       for (let i = 0; i * parallel + j < files.length; i++) {
-        sliced_files.push(files[i * parallel + j]);
+        slicedFiles.push(files[i * parallel + j]);
       }
-      if (sliced_files.length > 0) {
-        workers.push(fetchTables(sliced_files));
+      if (slicedFiles.length > 0) {
+        workers.push(fetchTables(slicedFiles));
       }
     }
-    let parallel_tables = await Promise.all(workers);
-    tables = tables.concat(parallel_tables.flat(2));
+    let tablesList = await Promise.all(workers);
+    tables = tables.concat(tablesList.flat(2));
   }
 }
 
-async function fetchTables(sliced_files) {
-  let sliced_tables = [];
-  for (let file of sliced_files) {
-    sliced_tables.push(await Arrow.tableFromIPC(fetch([endpoint, bucket, '/', datasetPath, file].join(''))));
+async function fetchTables(slicedFiles) {
+  let slicedTables = [];
+  for (let file of slicedFiles) {
+    slicedTables.push(await Arrow.tableFromIPC(fetch([endpoint, bucket, '/', datasetPath, file].join(''))));
   }
-  return sliced_tables;
+  return slicedTables;
 }
 
 async function setPerspectiveTable(tableList){
+  if (perspectiveTable != undefined) {
+    await perspectiveTable.clear();
+    perspectiveViewerElem.remove();
+    perspectiveViewerElem = document.createElement('perspective-viewer');
+    perspectiveViewerElem.className = 'perspective-viewer-material';
+    perspectiveViewerDivElem.appendChild(perspectiveViewerElem); 
+  }
   let perspectiveTableSchema = {};
   tableList.forEach((table) => {
     let tableColumnTypes = table.schema.fields.map((d) => d.type);
@@ -393,30 +381,44 @@ async function setPerspectiveTable(tableList){
       }
     });
   });
-  if (Object.keys(perspectiveTableSchema).length > 0) {
+  if (tableList.length > 0) {
     perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
     await perspectiveViewerElem.load(perspectiveTable);
-    for (let table of tableList) {
-      await perspectiveTable.update(Arrow.tableToIPC(table).buffer);
-    }
-    if (perspectiveViewerConfig == undefined) {
-      await perspectiveViewerElem.reset();
-    } else {
-      await perspectiveViewerElem.restore(perspectiveViewerConfig);
-    }
-    perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
-      perspectiveViewerConfig = await perspectiveViewerElem.save();
-    });
+    await perspectiveViewerElem.reset();
+    perspectiveViewerConfig.columns = Object.keys(perspectiveTableSchema);
+    await perspectiveViewerElem.restore(perspectiveViewerConfig);
+    await Promise.all([updatePerspectiveTable(tables)]);
+  }
+  perspectiveViewerElem.addEventListener("perspective-config-update", async function (event) {
+    perspectiveViewerConfig = await perspectiveViewerElem.save();
+    setFilterdTableToMapGlobe();
+  });
+}
+
+async function updatePerspectiveTable(tables) {
+  let updates = [];
+  for (let table of tables) {
+    updates.push(perspectiveTable.update(Arrow.tableToIPC(table).buffer));
+  }
+  return updates;
+}
+
+async function setPerspectiveViewer(){
+  let inputElem = document.getElementById('tableMode');
+  if (inputElem.checked) {
+    perspectiveViewerElem.style.visibility = 'visible';
+    perspectiveViewerElem.style.height = '600px';
     perspectiveViewerElem.toggleConfig(true);
-    //let perspectiveTableView = await perspectiveTable.view();
-    //for (let name of await perspectiveTable.columns()) {
-    //  let min_max = await perspectiveTableView.get_min_max(name);
-    //  console.log('name:', name, ', min:', min_max[0], ', max:', min_max[1]);
-    //}
+  } else {
+    perspectiveViewerElem.style.visibility = 'hidden';
+    perspectiveViewerElem.style.height = '0px';
   }
 }
 
 async function setDeckglLayers(tableList){
+  if ((await perspectiveViewerElem.save()).filter.length > 0) {
+    tableList = [Arrow.tableFromIPC(await (await perspectiveTable.view({filter: (await perspectiveViewerElem.save()).filter})).to_arrow())];
+  }
   let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
   let layerType = undefined;
   let selectElem = document.getElementById('layerType');
@@ -516,43 +518,22 @@ async function setLegend(){
   }
 }
 
-async function setPerspective(tableList){
-  let inputElem = document.getElementById('tableMode');
-  if (inputElem.checked) {
-    await clearPerspective();
-    perspectiveViewerElem.style.visibility = 'visible';
-    perspectiveViewerElem.style.height = '600px';
-    await setPerspectiveTable(tableList);
-  } else {
-    perspectiveViewerElem.style.visibility = 'hidden';
-    perspectiveViewerElem.style.height = '0px';
-    await clearPerspective();
-  }
-}
-
 async function setIdColumnFilter(){
-  let inputElem = document.getElementById('tableMode');
-  if (!inputElem.checked) {
-    inputElem.checked = true;
-    await setPerspective(tables);  
-  }
   let selectElem = document.getElementById('idColumnFilter');
   if (selectElem.selectedIndex > 0) {
-    await perspectiveViewerElem.restore({filter: [['id', "==", selectElem.options[selectElem.selectedIndex].text]]});
+    perspectiveViewerConfig.filter = [['id', "==", selectElem.options[selectElem.selectedIndex].text]];
+    await perspectiveViewerElem.restore(perspectiveViewerConfig);
     await clearDeckglLayers();
-    await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: [['id', "==", selectElem.options[selectElem.selectedIndex].text]]})).to_arrow())]);
+    await setDeckglLayers(tables);
   } else {
+    perspectiveViewerConfig.filter = [];
+    await perspectiveViewerElem.restore(perspectiveViewerConfig);
     await clearDeckglLayers();
-    await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: (await perspectiveViewerElem.save()).filter})).to_arrow())]);
+    await setDeckglLayers(tables);
   }
 }
 
 async function setFilterdTableToMapGlobe(){
-  let inputElem = document.getElementById('tableMode');
-  if (!inputElem.checked) {
-    inputElem.checked = true;
-    await setPerspective(tables);  
-  }
   await clearDeckglLayers();
-  await setDeckglLayers([Arrow.tableFromIPC(await (await perspectiveTable.view({filter: (await perspectiveViewerElem.save()).filter})).to_arrow())]);
+  await setDeckglLayers(tables);
 }
