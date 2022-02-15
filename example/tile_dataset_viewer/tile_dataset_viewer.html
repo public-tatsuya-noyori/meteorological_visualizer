@@ -185,7 +185,7 @@ datetimeLevel = 3;
 heightName = 'geopotential height [m]';
 heightMultiply = 100.0;
 name = ['geopotential height [m]', 'air temperature [K]', 'relative humidity [%]', 'wind speed [m s-1]', 'wind direction [degree]'];
-valueForMinColor = [0.0, 253.15, 5.0, 0.0, 30.0];
+valueForMinColor = [0.0, 193.15, 5.0, 0.0, 30.0];
 valueForMaxColor = [36000.0, 313.15, 95.0, 30.0, 390.0];
 datasetCategoryPathConfigMap.set(categoryPath, {idColumnFilter:idColumnFilter, name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
@@ -202,7 +202,7 @@ perspective-viewer {height:0px;width:1280px;visibility:hidden;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input type='checkbox' id='tableMode'> clear<input type='checkbox' id='clearMode' checked></div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input type='checkbox' id='tableMode'> clear<input type='checkbox' id='clearMode' checked> filter<input type='text' id='filterText' readonly="readonly"> </div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
 <select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option></select> legend<input type='checkbox' id='legendMode'> <select id='idColumnFilter'></select> <input type='hidden' value='previous' id='previous'> <input type='hidden' value='next' id='next'>
 <div claas='table' id='deckglViewers'></div>
