@@ -3,36 +3,26 @@
 <head>
 <meta charset='UTF-8'>
 <title>tile dataset viewer</title>
-<script src='https://unpkg.com/apache-arrow@latest/Arrow.es2015.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/apache-arrow@latest/Arrow.es2015.min.js'></script> -->
-<link href='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/material.css' rel='stylesheet'/>
-<!-- <link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/material.css' rel='stylesheet'/> -->
-<script src='https://unpkg.com/@finos/perspective@latest/dist/umd/perspective.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective@latest/dist/umd/perspective.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer@latest/dist/umd/perspective-viewer.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/umd/perspective-viewer.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer-datagrid@latest/dist/umd/perspective-viewer-datagrid.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@latest/dist/umd/perspective-viewer-datagrid.js'></script> -->
-<script src='https://unpkg.com/@finos/perspective-viewer-d3fc@latest/dist/umd/perspective-viewer-d3fc.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@latest/dist/umd/perspective-viewer-d3fc.js'></script> -->
-<script src='https://unpkg.com/deck.gl@latest/dist.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/deck.gl@latest/dist.min.js'></script> -->
-<script src='https://unpkg.com/aws-sdk@latest/dist/aws-sdk.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/aws-sdk@latest/dist/aws-sdk.min.js'></script> -->
-<script src='https://unpkg.com/d3@latest/dist/d3.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/d3@latest/dist/d3.min.js'></script> -->
-<script src='https://unpkg.com/d3-svg-legend@latest/d3-legend.min.js'></script>
-<!-- <script src='https://cdn.jsdelivr.net/npm/d3-svg-legend@latest/d3-legend.min.js'></script> -->
+<script src='https://cdn.jsdelivr.net/npm/apache-arrow@latest/Arrow.es2015.min.js'></script>
+<link href='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/css/material.css' rel='stylesheet' crossorigin='anonymous'/>
+<script type="module" src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer@latest/dist/cdn/perspective-viewer.js'></script>
+<script type="module" src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-datagrid@latest/dist/cdn/perspective-viewer-datagrid.js'></script>
+<script type="module" src='https://cdn.jsdelivr.net/npm/@finos/perspective-viewer-d3fc@latest/dist/cdn/perspective-viewer-d3fc.js'></script>
+<script type="module" src='https://cdn.jsdelivr.net/npm/@finos/perspective@latest/dist/cdn/perspective.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/deck.gl@latest/dist.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/aws-sdk@latest/dist/aws-sdk.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/d3@latest/dist/d3.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/d3-svg-legend@latest/d3-legend.min.js'></script>
 <script type='module' src='./js/tile_dataset_viewer.js'></script>
 <script>
 const colorScaleRange = ['#8000ff', '#0000ff', '#0080ff', '#00ffff', '#00ff80', '#00ff00', '#80ff00', '#ffff00', '#ff8000', '#ff0000', '#ff0080', '#ff00ff'];
 const colorScaleRangeReverse = ['#ff00ff', '#ff0080', '#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff', '#0080ff', '#0000ff', '#8000ff'];
 const mapGeoJsonLayer = new deck.GeoJsonLayer({data:'js/ne_110m_coastline.json',stroked:false,filled:true,lineWidthMinPixels:2,opacity:0.5});
 const endpoint = 'http://202.32.195.138:9000/', bucket = 'aa-open-dataset';
-const mapViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
-//const mapViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
-const globeViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
-//const globeViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
+//const mapViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
+const mapViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
+//const globeViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
+const globeViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
 const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: true});
 const numberOfConfigDeckglViewersTableTd = 2;
 let datasetCategoryPathConfigMap = new Map();
@@ -202,9 +192,9 @@ perspective-viewer {height:0px;width:1280px;visibility:hidden;}
 </style>
 </head>
 <body>
-<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input type='checkbox' id='tableMode'> clear<input type='checkbox' id='clearMode' checked> filter<input type='text' id='filterText' readonly="readonly"> </div>
+<div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input id='tableMode' type='checkbox'> stack<input id='stackMode' type='checkbox' checked></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
-<select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option></select> legend<input type='checkbox' id='legendMode'> <select id='idColumnFilter'></select> <input type='hidden' value='previous' id='previous'> <input type='hidden' value='next' id='next'>
-<div claas='table' id='deckglViewers'></div>
+<select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option></select> legend<input id='legendMode' type='checkbox'> <select id='idColumnFilter'></select> filter<input id='filterText' type='text' readonly="readonly"> <input id='previous' type='hidden' value='previous'> <input id='next' type='hidden' value='next'>
+<div id='deckglViewers' claas='table'></div>
 </body>
 </html>
