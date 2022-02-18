@@ -7,7 +7,7 @@ let deckglViewersViewState = undefined;
 let deckglViewersLimitNum = 15;
 let pageNum = 0;
 let parallel = 8;
-let perspectiveWorker = perspective.worker();
+let perspectiveWorker = undefined;
 let perspectiveTableSchema = {};
 let perspectiveTable = undefined;
 let perspectiveViewerConfig = {filter:[]};
@@ -145,7 +145,8 @@ async function setCategorySelectors(selectedLevel){
 }
 
 async function setDatetimeSelectors(selectedLevel){
-  let datetimeLevel = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length)).datetimeLevel;
+  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
+  let datetimeLevel = config.datetimeLevel;
   if (datetimeLevel < maxDatetimeLevel) {
     let selectElem = document.getElementById(['datetime', maxDatetimeLevel].join(''));
     selectElem.textContent = null;
@@ -191,7 +192,11 @@ async function setDatetimeSelectors(selectedLevel){
       selectElem.selectedIndex = options.indexOf(formerSelectedText);
     } else {
       if (selectedIndex == -1) {
-        selectedIndex = options.length - 1;
+        if (datetimeLevel == maxDatetimeLevel) {
+          selectedIndex = 0;
+        } else {
+          selectedIndex = options.length - 1;
+        }
       }
       selectElem.selectedIndex = selectedIndex;
     }
@@ -205,7 +210,6 @@ async function setDatetimeSelectors(selectedLevel){
     alert('No data');
   }
   await setDeckglLayers();
-  let config = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length));
   if (config.idColumnFilter != undefined) {
     await setPerspective();
   }
@@ -509,13 +513,14 @@ async function clearPerspective() {
     perspectiveViewerElem = document.createElement('perspective-viewer');
     perspectiveViewerElem.className = 'perspective-viewer-material';
     document.getElementById('perspectiveViewer').appendChild(perspectiveViewerElem);
-    perspectiveWorker = perspective.worker();
+    perspectiveWorker = undefined;
     perspectiveTable = undefined;
     isPerspectiveLoaded = false;
   }
 }
 
 async function setPerspective(){
+  perspectiveWorker = perspective.worker()
   perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
   for (let table of arrowTables) {
     await perspectiveTable.update(Arrow.tableToIPC(table).buffer);
