@@ -210,9 +210,6 @@ async function setDatetimeSelectors(selectedLevel){
     alert('No data');
   }
   await setDeckglLayers();
-  if (config.idColumnFilter != undefined) {
-    await setPerspective();
-  }
   setIdColumnFilterSelector(config.idColumnFilter);
   setPerspectiveViewer();
 }
@@ -369,6 +366,9 @@ async function setDeckglViewers(){
 async function setDeckglLayers(){
   let tables = []
   if (perspectiveViewerConfig.filter.length > 0) {
+    if (perspectiveTable == undefined) {
+      await setPerspective();
+    }
     let filteredPerspectiveView = await perspectiveTable.view({filter: perspectiveViewerConfig.filter});
     tables = [await Arrow.tableFromIPC(await filteredPerspectiveView.to_arrow())];
     filteredPerspectiveView.delete();
@@ -546,10 +546,10 @@ async function setPerspectiveViewer(){
   if (inputElem.checked) {
     if (perspectiveTable == undefined) {
       await setPerspective();
-      await loadPerspectiveTable();
     }
     if (!isPerspectiveLoaded) {
       loadPerspectiveTable();
+      isPerspectiveLoaded = true;
     }
     perspectiveViewerElem.style.visibility = 'visible';
     perspectiveViewerElem.style.height = '600px';
