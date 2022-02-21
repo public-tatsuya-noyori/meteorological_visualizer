@@ -192,7 +192,7 @@ async function setDatetimeSelectors(selectedLevel){
       selectElem.selectedIndex = options.indexOf(formerSelectedText);
     } else {
       if (selectedIndex == -1) {
-        if (datetimeLevel == maxDatetimeLevel) {
+        if (datetimeLevel == maxDatetimeLevel && level == maxDatetimeLevel) {
           selectedIndex = 0;
         } else {
           selectedIndex = options.length - 1;
@@ -520,7 +520,7 @@ async function clearPerspective() {
 }
 
 async function setPerspective(){
-  perspectiveWorker = perspective.worker()
+  perspectiveWorker = perspective.worker();
   perspectiveTable = await perspectiveWorker.table(perspectiveTableSchema);
   for (let table of arrowTables) {
     await perspectiveTable.update(Arrow.tableToIPC(table).buffer);
