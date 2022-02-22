@@ -26,7 +26,7 @@ const globeViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,p
 const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: true});
 const deckglViewerTableTdNum = 2;
 let datasetCategoryPathConfigMap = new Map();
-let categoryPath, idColumnFilter, datetimeLevel, name, height, stepValueForColor, numberOfStepForColor, startColor, hslHueAngle, configTable;
+let categoryPath, idColumnFilter, datetimeLevel, name, heightName, heightMultiply, valueForMinColor, valueForMaxColor;
 let filter = [];
 //let filter = ['l1x2y0', 'l1x2y1', 'l1x3y0', 'l1x3y1', 
 //              'l2x5y0', 'l2x6y0', 'l2x7y0', 'l2x5y1', 'l2x6y1', 'l2x7y1', 'l2x5y2', 'l2x6y2', 'l2x7y2',
