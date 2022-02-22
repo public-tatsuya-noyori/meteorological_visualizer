@@ -404,9 +404,11 @@ async function setDeckglLayers(){
   if (config['heightName'] == undefined) {
     for (let [tableIndex, table] of tables.entries()) {
       let positions = new Float32Array(3 * table.numRows);
+      let lonVector = table.getChild('longitude [degree]');
+      let latVector = table.getChild('latitude [degree]');
       for (let i = 0; i < table.numRows; i++) {
-        positions[3 * i] =  table.get(i)['longitude [degree]'];
-        positions[3 * i + 1] =  table.get(i)['latitude [degree]'];
+        positions[3 * i] =  lonVector.get(i);
+        positions[3 * i + 1] =  latVector.get(i);
         positions[3 * i + 2] =  0.0;
       }
       tablePositionsMap.set(tableIndex, positions);
@@ -414,10 +416,13 @@ async function setDeckglLayers(){
   } else {
     for (let [tableIndex, table] of tables.entries()) {
       let positions = new Float32Array(3 * table.numRows);
+      let lonVector = table.getChild('longitude [degree]');
+      let latVector = table.getChild('latitude [degree]');
+      let heightVector = table.getChild(config['heightName']);
       for (let i = 0; i < table.numRows; i++) {
-        positions[3 * i] =  table.get(i)['longitude [degree]'];
-        positions[3 * i + 1] =  table.get(i)['latitude [degree]'];
-        positions[3 * i + 2] =  table.get(i)[config['heightName']] * config['heightMultiply'];
+        positions[3 * i] =  lonVector.get(i);
+        positions[3 * i + 1] =  latVector.get(i);
+        positions[3 * i + 2] =  heightVector.get(i) * config['heightMultiply'];
       }
       tablePositionsMap.set(tableIndex, positions);
     }
@@ -440,7 +445,7 @@ async function setDeckglLayers(){
     for (let [tableIndex, table] of tables.entries()) {
       if (layerType == 'PointCloud') {
         let colors = new Uint8Array(3 * table.numRows);
-        if (table.schema.names.indexOf(name) > 0) {
+        if (table.schema.names.indexOf(name) > -1) {
           let vector = table.getChild(name);
           for (let i = 0; i < table.numRows; i++) {
             let rgb = d3.rgb(colorScale(vector.get(i)));
