@@ -5,8 +5,8 @@ let datasetCategoryPath = '', datasetPath = '';
 let deckglViewers = [];
 let deckglViewersViewState = undefined;
 let deckglViewersLimitNum = 15;
-let pageNum = 0;
-let parallel = 8;
+let deckglViewersPageNum = 0;
+let parallelFetchNum = 6;
 let perspectiveWorker = undefined;
 let perspectiveTableSchema = {};
 let perspectiveTable = undefined;
@@ -33,16 +33,16 @@ async function initialize(){
   inputElem.addEventListener('change', async () => {
     setLegend();
   });
-  inputElem = document.getElementById('next');
+  inputElem = document.getElementById('deckglViewersPageNext');
   inputElem.addEventListener('click', async () => {
-    pageNum = pageNum + 1;
+    deckglViewersPageNum = deckglViewersPageNum + 1;
     await clearDeckglLayers();
     await setDeckglViewers();
     await setDeckglLayers();
   });
-  inputElem = document.getElementById('previous');
+  inputElem = document.getElementById('deckglViewersPagePrevious');
   inputElem.addEventListener('click', async () => {
-    pageNum = pageNum - 1;
+    deckglViewersPageNum = deckglViewersPageNum - 1;
     await clearDeckglLayers();
     await setDeckglViewers();
     await setDeckglLayers();
@@ -95,7 +95,7 @@ async function getSelectOptions(path){
 }
 
 async function setCategorySelectors(selectedLevel){
-  pageNum = 0;
+  deckglViewersPageNum = 0;
   let inputElem = document.getElementById('stackMode');
   inputElem.checked = false;
   inputElem = document.getElementById('legendMode');
@@ -237,10 +237,10 @@ async function getTables(){
   } while (response.IsTruncated);
   if (files.length > 0) {
     let workers = [];
-    for (let j = 0; j < parallel; j++) {
+    for (let j = 0; j < parallelFetchNum; j++) {
       let slicedFiles = [];
-      for (let i = 0; i * parallel + j < files.length; i++) {
-        slicedFiles.push(files[i * parallel + j]);
+      for (let i = 0; i * parallelFetchNum + j < files.length; i++) {
+        slicedFiles.push(files[i * parallelFetchNum + j]);
       }
       if (slicedFiles.length > 0) {
         workers.push(fetchTables(slicedFiles));
@@ -284,13 +284,13 @@ async function setDeckglViewers(){
     selectElem.selectedIndex = 0;
   }
   let configNames = datasetCategoryPathConfigMap.get(datasetCategoryPath.substring(datasetCategoryPath.indexOf('/') + 1, datasetCategoryPath.length)).name;
-  let numberOfConfigDeckglViewer = configNames.length - deckglViewersLimitNum * pageNum;
-  if (numberOfConfigDeckglViewer > deckglViewersLimitNum) {
-    numberOfConfigDeckglViewer = deckglViewersLimitNum;
+  let configDeckglViewerNum = configNames.length - deckglViewersLimitNum * deckglViewersPageNum;
+  if (configDeckglViewerNum > deckglViewersLimitNum) {
+    configDeckglViewerNum = deckglViewersLimitNum;
   }
   let numberOfDeckglViewer = deckglViewers.length;
-  if (numberOfDeckglViewer > numberOfConfigDeckglViewer) {
-    for (let deckglViewerIndex = numberOfConfigDeckglViewer; deckglViewerIndex < numberOfDeckglViewer; deckglViewerIndex++) {
+  if (numberOfDeckglViewer > configDeckglViewerNum) {
+    for (let deckglViewerIndex = configDeckglViewerNum; deckglViewerIndex < numberOfDeckglViewer; deckglViewerIndex++) {
       document.getElementById(['deckglViewerHeader', deckglViewerIndex].join('')).style.visibility = 'hidden';
       document.getElementById(['deckglViewer', deckglViewerIndex].join('')).style.visibility = 'hidden';
     }
@@ -305,10 +305,10 @@ async function setDeckglViewers(){
   } else {
     deckglViewersInitialViewState = deckglViewersViewState;
   }
-  for (let deckglViewerIndex = 0; deckglViewerIndex < numberOfConfigDeckglViewer; deckglViewerIndex++) {
+  for (let deckglViewerIndex = 0; deckglViewerIndex < configDeckglViewerNum; deckglViewerIndex++) {
     if (deckglViewerIndex >= numberOfDeckglViewer) {
-      let trNumber = Math.floor(deckglViewerIndex / numberOfConfigDeckglViewersTableTd);
-      if (0 == deckglViewerIndex % numberOfConfigDeckglViewersTableTd) {
+      let trNumber = Math.floor(deckglViewerIndex / deckglViewerTableTdNum);
+      if (0 == deckglViewerIndex % deckglViewerTableTdNum) {
         let trElem = document.createElement('div');
         trElem.className = 'tr';
         trElem.setAttribute('id', ['deckglViewerTr', trNumber].join(''));
@@ -317,7 +317,7 @@ async function setDeckglViewers(){
       let deckglViewerHeaderElem = document.createElement('div');
       deckglViewerHeaderElem.className = 'deckglViewerHeader';
       deckglViewerHeaderElem.setAttribute('id', ['deckglViewerHeader', deckglViewerIndex].join(''));
-      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
+      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * deckglViewersPageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.createElement('div');
       deckglViewerElem.className = 'deckglViewer';
@@ -354,7 +354,7 @@ async function setDeckglViewers(){
         deckglViewers[deckglViewerIndex].setProps({views:new deck.MapView({repeat:true})});
       }
       let deckglViewerHeaderElem = document.getElementById(['deckglViewerHeader', deckglViewerIndex].join(''));
-      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * pageNum];
+      deckglViewerHeaderElem.textContent = configNames[deckglViewerIndex + deckglViewersLimitNum * deckglViewersPageNum];
       deckglViewerHeaderElem.style.visibility = 'visible';
       let deckglViewerElem = document.getElementById(['deckglViewer', deckglViewerIndex].join(''));
       deckglViewerElem.className = 'deckglViewer';
@@ -384,20 +384,20 @@ async function setDeckglLayers(){
     layerType = selectElem.options[0].text;
     selectElem.selectedIndex = 0;
   }
-  let pageLength = config.name.length - deckglViewersLimitNum * pageNum;
+  let pageLength = config.name.length - deckglViewersLimitNum * deckglViewersPageNum;
   if (pageLength > deckglViewersLimitNum) {
     pageLength = deckglViewersLimitNum;
-    let inputElem = document.getElementById('next');
+    let inputElem = document.getElementById('deckglViewersPageNext');
     inputElem.type = 'button';
   } else {
-    let inputElem = document.getElementById('next');
+    let inputElem = document.getElementById('deckglViewersPageNext');
     inputElem.type = 'hidden';
   }
-  if (pageNum > 0) {
-    let inputElem = document.getElementById('previous');
+  if (deckglViewersPageNum > 0) {
+    let inputElem = document.getElementById('deckglViewersPagePrevious');
     inputElem.type = 'button';
   } else {
-    let inputElem = document.getElementById('previous');
+    let inputElem = document.getElementById('deckglViewersPagePrevious');
     inputElem.type = 'hidden';
   }
   let tablePositionsMap = new Map();
@@ -427,7 +427,7 @@ async function setDeckglLayers(){
       tablePositionsMap.set(tableIndex, positions);
     }
   }
-  for (let configIndex = deckglViewersLimitNum * pageNum; configIndex < pageLength + deckglViewersLimitNum * pageNum; configIndex++) {
+  for (let configIndex = deckglViewersLimitNum * deckglViewersPageNum; configIndex < pageLength + deckglViewersLimitNum * deckglViewersPageNum; configIndex++) {
     let layers = [];
     let name = config['name'][configIndex];
     let valueForMinColor = config['valueForMinColor'][configIndex];
@@ -469,7 +469,7 @@ async function setDeckglLayers(){
       }
     }
     layers.push(mapGeoJsonLayer.clone());
-    deckglViewers[configIndex - deckglViewersLimitNum * pageNum].setProps({layers: layers});
+    deckglViewers[configIndex - deckglViewersLimitNum * deckglViewersPageNum].setProps({layers: layers});
   }
 }
 

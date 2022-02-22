@@ -24,7 +24,7 @@ const mapViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pit
 const globeViewInitialViewState = {latitude:0.0,longitude:0.0,zoom:0,bearing:0,pitch:0};
 //const globeViewInitialViewState = {latitude:0.0,longitude:90.0,zoom:0,bearing:0,pitch:0};
 const s3 = new AWS.S3({endpoint: new AWS.Endpoint(endpoint), s3ForcePathStyle: true});
-const numberOfConfigDeckglViewersTableTd = 2;
+const deckglViewerTableTdNum = 2;
 let datasetCategoryPathConfigMap = new Map();
 let categoryPath, idColumnFilter, datetimeLevel, name, height, stepValueForColor, numberOfStepForColor, startColor, hslHueAngle, configTable;
 let filter = [];
@@ -194,7 +194,7 @@ perspective-viewer {height:0px;width:1280px;visibility:hidden;}
 <body>
 <div><select id='category0'></select><select id='category1'></select><select id='category2'></select><select id='category3'></select><select id='datetime0'></select><select id='datetime1'></select><select id='datetime2'></select><select id='datetime3'></select> table<input id='tableMode' type='checkbox'> stack<input id='stackMode' type='checkbox' checked></div>
 <div id='perspectiveViewer'><perspective-viewer class='perspective-viewer-material' editable></perspective-viewer></div>
-<select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option></select> legend<input id='legendMode' type='checkbox'> <select id='idColumnFilter'></select> filter<input id='filterText' type='text' readonly="readonly"> <input id='previous' type='hidden' value='previous'> <input id='next' type='hidden' value='next'>
+<select id='viewerType'><option>Globe</option><option>Map</option></select><select id='layerType'><option>PointCloud</option></select> legend<input id='legendMode' type='checkbox'> <select id='idColumnFilter'></select> filter<input id='filterText' type='text' readonly="readonly"> <input id='deckglViewersPagePrevious' type='hidden' value='previous'> <input id='deckglViewersPageNext' type='hidden' value='next'>
 <div id='deckglViewers' claas='table'></div>
 </body>
 </html>
