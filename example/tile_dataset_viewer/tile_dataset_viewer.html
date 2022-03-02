@@ -160,6 +160,15 @@ valueForMaxColor = [0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.12
 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120, 0.120];
 datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
 
+categoryPath = 'observation/satellite/gpsro/';
+datetimeLevel = 2;
+heightName = 'height [m]';
+heightMultiply = 100.0;
+name = ['height [m]', 'bending angle [radian](1)', 'bending angle [radian](2)', 'bending angle [radian](3)', 'bending angle [radian](4)', 'bending angle [radian](5)', 'bending angle [radian](6)', 'atmospheric refractivity [N units](1)', 'atmospheric refractivity [N units](2)', 'percent confidence [%]'];
+valueForMinColor = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+valueForMaxColor = [36000.0, 0.00314, 0.00314, 0.00314, 0.00314, 0.00314, 0.00314, 360.0, 360.0, 100.0];
+datasetCategoryPathConfigMap.set(categoryPath, {name:name, datetimeLevel:datetimeLevel, filter:filter, heightName:heightName, heightMultiply:heightMultiply, valueForMinColor:valueForMinColor, valueForMaxColor:valueForMaxColor});
+
 categoryPath = 'analysis_forecast/gsm/surface/';
 datetimeLevel = 3;
 heightName = undefined;
