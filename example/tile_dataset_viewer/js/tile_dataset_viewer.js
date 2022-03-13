@@ -409,7 +409,6 @@ async function setDeckglLayers(){
       for (let i = 0; i < table.numRows; i++) {
         positions[3 * i] =  lonVector.get(i);
         positions[3 * i + 1] =  latVector.get(i);
-        positions[3 * i + 2] =  0.0;
       }
       tablePositionsMap.set(tableIndex, positions);
     }
@@ -419,10 +418,17 @@ async function setDeckglLayers(){
       let lonVector = table.getChild('longitude [degree]');
       let latVector = table.getChild('latitude [degree]');
       let heightVector = table.getChild(config['heightName']);
-      for (let i = 0; i < table.numRows; i++) {
-        positions[3 * i] =  lonVector.get(i);
-        positions[3 * i + 1] =  latVector.get(i);
-        positions[3 * i + 2] =  heightVector.get(i) * config['heightMultiply'];
+      if (heightVector == null) {
+        for (let i = 0; i < table.numRows; i++) {
+          positions[3 * i] =  lonVector.get(i);
+          positions[3 * i + 1] =  latVector.get(i);
+        }
+      } else {
+        for (let i = 0; i < table.numRows; i++) {
+          positions[3 * i] =  lonVector.get(i);
+          positions[3 * i + 1] =  latVector.get(i);
+          positions[3 * i + 2] =  heightVector.get(i) * config['heightMultiply'];
+        }  
       }
       tablePositionsMap.set(tableIndex, positions);
     }
@@ -513,7 +519,6 @@ async function clearPerspective() {
     } finally {
       await perspectiveWorker.terminate();
     }
-    perspectiveViewerElem.textContent = null;
     perspectiveViewerElem.remove();
     perspectiveViewerElem = document.createElement('perspective-viewer');
     perspectiveViewerElem.className = 'perspective-viewer-material';
